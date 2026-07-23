@@ -1,0 +1,8 @@
+[package]
+name = "know-reasoner"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+know-core     = { workspace = true }
+know-ontology = { workspace = true }

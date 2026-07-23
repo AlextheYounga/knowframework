@@ -1,6 +1,30 @@
-[package]
-name = "knowframework"
+[workspace]
+members = [
+    "crates/know-core",
+    "crates/know-ontology",
+    "crates/know-lexicon",
+    "crates/know-reasoner",
+    "crates/know-admission",
+    "crates/know-owl",
+    "crates/know-cli",
+    "crates/know-test-support",
+]
+resolver = "2"
+
+[workspace.package]
 version = "0.1.0"
 edition = "2024"
 
-[dependencies]
+[workspace.dependencies]
+know-core        = { path = "crates/know-core" }
+know-ontology    = { path = "crates/know-ontology" }
+know-lexicon     = { path = "crates/know-lexicon" }
+know-reasoner    = { path = "crates/know-reasoner" }
+know-admission   = { path = "crates/know-admission" }
+know-owl         = { path = "crates/know-owl" }
+know-test-support = { path = "crates/know-test-support" }
+
+serde    = { version = "1", features = ["derive"] }
+ron      = "0.8"
+thiserror = "2"
+clap     = { version = "4", features = ["derive"] }

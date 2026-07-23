@@ -1,0 +1,10 @@
+[package]
+name = "geometry"
+version = "0.1.0"
+schema = 1
+
+[validation]
+deny_duplicate_definitions = true
+deny_recursive_definitions = true
+deny_inconsistent_entities = true
+allow_unsatisfiable_concepts = false

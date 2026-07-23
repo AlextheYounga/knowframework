@@ -1,0 +1,16 @@
+[package]
+name = "know-cli"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "know"
+path = "src/main.rs"
+
+[dependencies]
+know-core      = { workspace = true }
+know-ontology  = { workspace = true }
+know-reasoner  = { workspace = true }
+know-admission = { workspace = true }
+know-owl       = { workspace = true }
+clap           = { workspace = true }

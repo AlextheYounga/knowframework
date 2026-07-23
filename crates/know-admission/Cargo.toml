@@ -1,0 +1,11 @@
+[package]
+name = "know-admission"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+know-core     = { workspace = true }
+know-ontology = { workspace = true }
+know-reasoner = { workspace = true }
+know-lexicon  = { workspace = true }
+serde         = { workspace = true }

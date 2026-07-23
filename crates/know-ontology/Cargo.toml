@@ -1,0 +1,10 @@
+[package]
+name = "know-ontology"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+know-core = { workspace = true }
+serde     = { workspace = true }
+ron       = { workspace = true }
+thiserror = { workspace = true }

@@ -1,0 +1,174 @@
+// Elementary geometry knowledge module.
+// Encoding: RON. Schema: KnowledgeModuleSource (know-ontology::source).
+//
+// Concepts are declared here; their subclass relationships are expressed as
+// SubclassOf axioms so the reasoner can compute transitive closure.
+//
+// Required verdicts to pass before this module is considered correct:
+//   Square subclass Rectangle        → Entailed
+//   Square subclass Polygon          → Entailed
+//   Square AND Circle satisfiable    → Contradicted
+//   Red AND Square subclass Large    → Unknown
+
+KnowledgeModuleSource(
+    id: "geometry",
+    schema_version: 1,
+
+    concepts: [
+        ConceptRecordSource(
+            id: "geometry::spatial_object",
+            label: "spatial object",
+            alternate_labels: [],
+            definition: None,
+            grounding: Some(StructuralDefinition),
+            status: Primitive,
+            provenance: None,
+        ),
+        ConceptRecordSource(
+            id: "geometry::figure",
+            label: "figure",
+            alternate_labels: [],
+            definition: None,
+            grounding: Some(StructuralDefinition),
+            status: Declared,
+            provenance: None,
+        ),
+        ConceptRecordSource(
+            id: "geometry::closed_figure",
+            label: "closed figure",
+            alternate_labels: [],
+            definition: None,
+            grounding: Some(StructuralDefinition),
+            status: Declared,
+            provenance: None,
+        ),
+        ConceptRecordSource(
+            id: "geometry::polygon",
+            label: "polygon",
+            alternate_labels: [],
+            definition: None,
+            grounding: Some(StructuralDefinition),
+            status: Declared,
+            provenance: None,
+        ),
+        ConceptRecordSource(
+            id: "geometry::quadrilateral",
+            label: "quadrilateral",
+            alternate_labels: [],
+            definition: None,
+            grounding: Some(StructuralDefinition),
+            status: Declared,
+            provenance: None,
+        ),
+        ConceptRecordSource(
+            id: "geometry::triangle",
+            label: "triangle",
+            alternate_labels: [],
+            definition: None,
+            grounding: Some(StructuralDefinition),
+            status: Declared,
+            provenance: None,
+        ),
+        ConceptRecordSource(
+            id: "geometry::rectangle",
+            label: "rectangle",
+            alternate_labels: [],
+            definition: None,
+            grounding: Some(StructuralDefinition),
+            status: Declared,
+            provenance: None,
+        ),
+        ConceptRecordSource(
+            id: "geometry::rhombus",
+            label: "rhombus",
+            alternate_labels: [],
+            definition: None,
+            grounding: Some(StructuralDefinition),
+            status: Declared,
+            provenance: None,
+        ),
+        ConceptRecordSource(
+            id: "geometry::square",
+            label: "square",
+            alternate_labels: ["equilateral rectangle"],
+            definition: Some(And([
+                Named("geometry::rectangle"),
+                Named("geometry::rhombus"),
+            ])),
+            grounding: Some(StructuralDefinition),
+            status: Defined,
+            provenance: None,
+        ),
+        ConceptRecordSource(
+            id: "geometry::circle",
+            label: "circle",
+            alternate_labels: [],
+            definition: None,
+            grounding: Some(StructuralDefinition),
+            status: Declared,
+            provenance: None,
+        ),
+        ConceptRecordSource(
+            id: "geometry::red",
+            label: "red",
+            alternate_labels: [],
+            definition: None,
+            grounding: Some(MeasurementClass),
+            status: Primitive,
+            provenance: None,
+        ),
+        ConceptRecordSource(
+            id: "geometry::large",
+            label: "large",
+            alternate_labels: [],
+            definition: None,
+            grounding: Some(MeasurementClass),
+            status: Primitive,
+            provenance: None,
+        ),
+    ],
+
+    relations: [],
+    entities: [],
+
+    axioms: [
+        SubclassOf(
+            child: Named("geometry::figure"),
+            parent: Named("geometry::spatial_object"),
+        ),
+        SubclassOf(
+            child: Named("geometry::closed_figure"),
+            parent: Named("geometry::figure"),
+        ),
+        SubclassOf(
+            child: Named("geometry::polygon"),
+            parent: Named("geometry::closed_figure"),
+        ),
+        SubclassOf(
+            child: Named("geometry::quadrilateral"),
+            parent: Named("geometry::polygon"),
+        ),
+        SubclassOf(
+            child: Named("geometry::triangle"),
+            parent: Named("geometry::polygon"),
+        ),
+        SubclassOf(
+            child: Named("geometry::rectangle"),
+            parent: Named("geometry::quadrilateral"),
+        ),
+        SubclassOf(
+            child: Named("geometry::rhombus"),
+            parent: Named("geometry::quadrilateral"),
+        ),
+        SubclassOf(
+            child: Named("geometry::circle"),
+            parent: Named("geometry::closed_figure"),
+        ),
+        DisjointClasses(
+            classes: [
+                Named("geometry::polygon"),
+                Named("geometry::circle"),
+            ],
+        ),
+    ],
+)
