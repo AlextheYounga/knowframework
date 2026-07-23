@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 // Concept expressions (source layer uses String for concept/relation names)
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ConceptExprSource {
     Named(String),
     And(Vec<ConceptExprSource>),
@@ -24,7 +24,7 @@ pub enum ConceptExprSource {
 // Axioms (source layer)
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum AxiomSource {
     SubclassOf {
         child: ConceptExprSource,
@@ -99,7 +99,7 @@ pub enum Grounding {
 // Record source types
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ConceptRecordSource {
     pub id: String,
     pub label: String,
@@ -111,7 +111,7 @@ pub struct ConceptRecordSource {
     pub provenance: Option<Provenance>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RelationRecordSource {
     pub id: String,
     pub label: String,
@@ -122,7 +122,7 @@ pub struct RelationRecordSource {
     pub provenance: Option<Provenance>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct EntityRecordSource {
     pub id: String,
     pub label: String,
@@ -130,7 +130,7 @@ pub struct EntityRecordSource {
 }
 
 /// Top-level structure of a `.know` file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct KnowledgeModuleSource {
     pub id: String,
     pub schema_version: u32,

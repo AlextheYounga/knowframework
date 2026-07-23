@@ -1,0 +1,31 @@
+// Example knowledge proposal: adds "pentagon" beneath polygon.
+// Encoding: RON. Schema: KnowledgeProposal (know-admission).
+//
+// Run:  know admit knowledge/geometry/concepts.know \
+//                  knowledge/geometry/proposals/pentagon.know
+
+KnowledgeProposal(
+    proposal_id: "geometry-pentagon-001",
+    proposed_concepts: [
+        ConceptRecordSource(
+            id: "geometry::pentagon",
+            label: "pentagon",
+            alternate_labels: ["five-sided polygon"],
+            definition: None,
+            grounding: Some(StructuralDefinition),
+            status: Declared,
+            provenance: None,
+        ),
+    ],
+    proposed_axioms: [
+        SubclassOf(
+            child: Named("geometry::pentagon"),
+            parent: Named("geometry::polygon"),
+        ),
+    ],
+    generated_by: (
+        kind: Human,
+        model_id: None,
+        run_id: "manual-001",
+    ),
+)

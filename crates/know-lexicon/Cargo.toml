@@ -7,3 +7,4 @@ edition.workspace = true
 know-core     = { workspace = true }
 know-ontology = { workspace = true }
 serde         = { workspace = true }
+ron           = { workspace = true }

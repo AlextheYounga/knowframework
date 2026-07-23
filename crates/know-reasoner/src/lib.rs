@@ -1,22 +1,25 @@
 //! Reasoning over a validated `KnowledgeModule`.
 //!
-//! The `Reasoner` trait defines the interface. Implementations live in
-//! submodules; only one is currently provided (see below).
+//! The `Reasoner` trait defines the interface. Implementations:
 //!
-//! Implementation strategy (staged per the architecture plan):
+//!   Stage 2 — [`boolean::BooleanReasoner`]: complete for the Boolean concept
+//!              fragment (AND / OR / NOT / subclass / equivalence /
+//!              disjointness / class assertions / negative class assertions),
+//!              backed by a SAT decision procedure ([`sat`]).
 //!
-//!   Stage 2 — Boolean concept fragment: AND / OR / NOT / subclass /
-//!              equivalence / disjointness / class assertions.
-//!              Back this with a complete Boolean decision procedure (SAT).
-//!
-//!   Stage 3 — Relational description logic: EXISTS / FOR_ALL restrictions,
-//!              relation assertions. Requires a full ALC tableau or equivalent.
-//!
-//! Neither stage is implemented yet. The trait and verdict types are
-//! established here so downstream crates can depend on stable interfaces.
+//!   Stage 3 — relational description logic (EXISTS / FOR_ALL restrictions,
+//!              relation assertions) requires a full ALC tableau or
+//!              equivalent. Not yet implemented; the Boolean reasoner returns
+//!              `ReasoningOutcome::Unsupported` for relational input rather
+//!              than approximating.
 
 use know_core::{AxiomId, ConceptId, Diagnostic, EntityId, RelationId};
-use know_ontology::{ConceptExpr, KnowledgeModule};
+use know_ontology::ConceptExpr;
+
+pub mod boolean;
+pub mod sat;
+
+pub use boolean::BooleanReasoner;
 
 // ---------------------------------------------------------------------------
 // Propositions — what the reasoner can be asked about
@@ -90,6 +93,8 @@ pub struct Explanation {
     pub conclusion: Proposition,
     pub supporting_axioms: Vec<AxiomId>,
     pub steps: Vec<InferenceStep>,
+    /// Human-readable elaboration, e.g. a witness model for satisfiability.
+    pub notes: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -111,6 +116,11 @@ pub enum InferenceRule {
     DisjointnessContradiction,
     ClassAssertionPropagation,
     ComplementContradiction,
+    /// Stage 2: the conclusion follows because its negation, together with
+    /// the premise axioms, is propositionally unsatisfiable. The premises
+    /// listed are a minimal supporting set. Structured natural-deduction
+    /// steps are a later refinement.
+    BooleanRefutation,
 }
 
 /// Explanation for an `Unknown` verdict: what the ontology is missing.
@@ -182,47 +192,43 @@ pub trait Reasoner {
 }
 
 // ---------------------------------------------------------------------------
-// Placeholder implementation
-//
-// Returns `Unsupported` for every query until Stage 2 is built.
-// Exists so `know-cli` and `know-admission` can compile and run.
+// Display
 // ---------------------------------------------------------------------------
 
-pub struct UnimplementedReasoner;
-
-impl UnimplementedReasoner {
-    pub fn new(_module: &KnowledgeModule) -> Self {
-        Self
+impl std::fmt::Display for Proposition {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Proposition::ClassMembership { entity, class } => {
+                write!(f, "{} : {class}", entity.0)
+            }
+            Proposition::SubclassOf { child, parent } => {
+                write!(f, "{child} SUBCLASS_OF {parent}")
+            }
+            Proposition::Equivalent { left, right } => {
+                write!(f, "{left} EQUIVALENT_TO {right}")
+            }
+            Proposition::Disjoint { left, right } => {
+                write!(f, "{left} DISJOINT_WITH {right}")
+            }
+            Proposition::Satisfiable { class } => write!(f, "SATISFIABLE {class}"),
+            Proposition::RelationHolds { subject, relation, object } => {
+                write!(f, "{}({}, {})", relation.0, subject.0, object.0)
+            }
+            Proposition::Consistent => write!(f, "CONSISTENT"),
+        }
     }
 }
 
-impl Reasoner for UnimplementedReasoner {
-    fn query(&self, _proposition: &Proposition) -> ReasoningOutcome<Verdict> {
-        // TODO: implement Stage 2 Boolean SAT backend, then Stage 3 ALC tableau.
-        ReasoningOutcome::Unsupported(UnsupportedFeature {
-            feature: "reasoning".to_string(),
-            advice: Some("Boolean SAT backend not yet implemented (Stage 2).".to_string()),
-        })
-    }
-
-    fn classify(&self, _concept: &ConceptExpr) -> ReasoningOutcome<ClassificationResult> {
-        ReasoningOutcome::Unsupported(UnsupportedFeature {
-            feature: "classification".to_string(),
-            advice: None,
-        })
-    }
-
-    fn is_consistent(&self) -> ReasoningOutcome<bool> {
-        ReasoningOutcome::Unsupported(UnsupportedFeature {
-            feature: "consistency".to_string(),
-            advice: None,
-        })
-    }
-
-    fn is_satisfiable(&self, _concept: &ConceptExpr) -> ReasoningOutcome<bool> {
-        ReasoningOutcome::Unsupported(UnsupportedFeature {
-            feature: "satisfiability".to_string(),
-            advice: None,
-        })
+impl Verdict {
+    /// Short tag for logs, CLI output, and verdict diffs.
+    pub fn kind(&self) -> &'static str {
+        match self {
+            Verdict::Entailed(_) => "Entailed",
+            Verdict::Contradicted(_) => "Contradicted",
+            Verdict::Unknown(_) => "Unknown",
+            Verdict::Ambiguous(_) => "Ambiguous",
+            Verdict::IllTyped(_) => "IllTyped",
+            Verdict::Inconsistent(_) => "Inconsistent",
+        }
     }
 }

@@ -9,3 +9,7 @@ know-ontology = { workspace = true }
 know-reasoner = { workspace = true }
 know-lexicon  = { workspace = true }
 serde         = { workspace = true }
+ron           = { workspace = true }
+
+[dev-dependencies]
+know-test-support = { workspace = true }

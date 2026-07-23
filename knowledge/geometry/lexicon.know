@@ -1,0 +1,67 @@
+// English lexicon for the geometry module.
+// Encoding: RON. Schema: LexicalModule (know-lexicon).
+//
+// Bindings may reference concepts from any module: the lexical layer maps
+// words to canonical IDs, it does not own the concepts. "diamond" is the
+// polysemy demonstration: one surface form, two unrelated canonical
+// concepts, disambiguated by context — never merged into a union concept.
+
+LexicalModule(
+    language: "en",
+    forms: [
+        LexicalForm(
+            text: "square",
+            language: "en",
+            part_of_speech: Some(Noun),
+            bindings: [
+                LexicalBinding(
+                    concept: "geometry::square",
+                    context_hints: [
+                        "geometry::rectangle",
+                        "geometry::polygon",
+                        "geometry::figure",
+                    ],
+                    usage_examples: ["a square has four equal sides"],
+                    provenance: (
+                        source: HumanAuthored(author: Some("alex")),
+                        timestamp: None,
+                        notes: None,
+                    ),
+                ),
+            ],
+        ),
+        LexicalForm(
+            text: "diamond",
+            language: "en",
+            part_of_speech: Some(Noun),
+            bindings: [
+                LexicalBinding(
+                    concept: "geometry::rhombus",
+                    context_hints: [
+                        "geometry::quadrilateral",
+                        "geometry::polygon",
+                    ],
+                    usage_examples: ["a diamond drawn on the page"],
+                    provenance: (
+                        source: HumanAuthored(author: Some("alex")),
+                        timestamp: None,
+                        notes: None,
+                    ),
+                ),
+                LexicalBinding(
+                    concept: "mineralogy::diamond",
+                    context_hints: [
+                        "mineralogy::gemstone",
+                        "mineralogy::carbon",
+                    ],
+                    usage_examples: ["a diamond set in a ring"],
+                    provenance: (
+                        source: HumanAuthored(author: Some("alex")),
+                        timestamp: None,
+                        notes: None,
+                    ),
+                ),
+            ],
+        ),
+    ],
+)

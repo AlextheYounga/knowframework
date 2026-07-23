@@ -133,6 +133,8 @@ dependencies = [
  "know-lexicon",
  "know-ontology",
  "know-reasoner",
+ "know-test-support",
+ "ron",
  "serde",
 ]
 
@@ -143,9 +145,11 @@ dependencies = [
  "clap",
  "know-admission",
  "know-core",
+ "know-lexicon",
  "know-ontology",
  "know-owl",
  "know-reasoner",
+ "ron",
 ]
 
 [[package]]
@@ -161,6 +165,7 @@ version = "0.1.0"
 dependencies = [
  "know-core",
  "know-ontology",
+ "ron",
  "serde",
 ]
 
@@ -188,6 +193,7 @@ version = "0.1.0"
 dependencies = [
  "know-core",
  "know-ontology",
+ "know-test-support",
 ]
 
 [[package]]

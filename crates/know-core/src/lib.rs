@@ -47,14 +47,14 @@ impl LanguageId {
 // The timestamp is an ISO 8601 string to avoid a chrono dependency here.
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Provenance {
     pub source: ProvenanceSource,
     pub timestamp: Option<String>,
     pub notes: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ProvenanceSource {
     LlmGenerated { model: String, run_id: String },
     HumanAuthored { author: Option<String> },
@@ -126,6 +126,34 @@ pub struct RelatedInfo {
     pub location: Option<SourceLocation>,
 }
 
+impl std::fmt::Display for Severity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Severity::Error => write!(f, "error"),
+            Severity::Warning => write!(f, "warning"),
+            Severity::Info => write!(f, "info"),
+        }
+    }
+}
+
+impl std::fmt::Display for Diagnostic {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}[{}]: {}", self.severity, self.code, self.message)?;
+        if let Some(loc) = &self.location {
+            if let Some(file) = &loc.file {
+                write!(f, " ({}", file.display())?;
+                if let Some(path) = &loc.data_path {
+                    write!(f, " at {path}")?;
+                }
+                write!(f, ")")?;
+            } else if let Some(path) = &loc.data_path {
+                write!(f, " (at {path})")?;
+            }
+        }
+        Ok(())
+    }
+}
+
 impl Diagnostic {
     pub fn error(code: &'static str, message: impl Into<String>) -> Self {
         Self { severity: Severity::Error, code, message: message.into(), location: None, related: vec![] }
@@ -162,4 +190,6 @@ pub mod codes {
     pub const AMBIGUOUS_SENSE: &str = "K012";
     pub const ADMISSION_REGRESSION: &str = "K013";
     pub const UNSUPPORTED_FEATURE: &str = "K014";
+    pub const STATUS_DEFINITION_MISMATCH: &str = "K015";
+    pub const CONCEPT_COLLAPSE: &str = "K016";
 }

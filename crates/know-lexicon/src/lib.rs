@@ -55,6 +55,16 @@ pub struct LexicalModule {
     pub forms: Vec<LexicalForm>,
 }
 
+impl LexicalModule {
+    pub fn from_ron(input: &str) -> Result<Self, ron::error::SpannedError> {
+        ron::from_str(input)
+    }
+
+    pub fn to_ron(&self) -> Result<String, ron::Error> {
+        ron::ser::to_string_pretty(self, ron::ser::PrettyConfig::default())
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Resolution
 // ---------------------------------------------------------------------------
@@ -102,23 +112,239 @@ pub enum ResolutionResult {
 }
 
 /// Trait implemented by all resolution strategies.
-///
-/// TODO: implement a context-hint-based resolver as the first concrete
-/// strategy. The plan specifies that the resolver may use surrounding words,
-/// grammatical role, domain context, embeddings, LLM interpretation, and
-/// previously resolved discourse entities — but the exact algorithm and
-/// priority ordering are not yet specified.
 pub trait Resolver {
     fn resolve(&self, text: &str, context: &ResolutionContext) -> ResolutionResult;
 }
 
-/// Placeholder resolver — always returns `NotFound`.
-/// Exists so dependent crates compile while the real resolver is unbuilt.
-pub struct UnimplementedResolver;
+// ---------------------------------------------------------------------------
+// Context-hint resolver
+//
+// The first concrete strategy from the plan's list (surrounding words,
+// domain context, ...): scores each candidate binding by how much of the
+// query context supports it. Embedding- and LLM-assisted candidate
+// generation are later strategies behind the same trait.
+// TODO: add an LLM-assisted resolver; it must return a ConceptId, not free
+// text, so its output stays subject to the same validation.
+// ---------------------------------------------------------------------------
 
-impl Resolver for UnimplementedResolver {
-    fn resolve(&self, _text: &str, _context: &ResolutionContext) -> ResolutionResult {
-        // TODO: implement context-hint-based resolution (see module doc).
-        ResolutionResult::NotFound
+/// Points per matched context hint / per explicit domain-hint match. A domain
+/// hint is an explicit statement of intent from the caller, so it outweighs
+/// any single incidental co-occurrence.
+const HINT_POINTS: u32 = 1;
+const DOMAIN_POINTS: u32 = 2;
+
+pub struct ContextResolver {
+    lexicon: LexicalModule,
+}
+
+impl ContextResolver {
+    pub fn new(lexicon: LexicalModule) -> Self {
+        Self { lexicon }
+    }
+
+    fn score(binding: &LexicalBinding, context: &ResolutionContext) -> (u32, Vec<ResolutionEvidence>) {
+        let mut points = 0;
+        let mut evidence = vec![];
+        for hint in &binding.context_hints {
+            if context.surrounding_concepts.contains(hint) {
+                points += HINT_POINTS;
+                evidence.push(ResolutionEvidence::ContextHintMatch { hint: hint.clone() });
+            }
+            if context.domain_hint.as_ref() == Some(hint) {
+                points += DOMAIN_POINTS;
+                evidence.push(ResolutionEvidence::ExplicitDomainHint { domain: hint.clone() });
+            }
+        }
+        (points, evidence)
+    }
+}
+
+impl Resolver for ContextResolver {
+    fn resolve(&self, text: &str, context: &ResolutionContext) -> ResolutionResult {
+        if let Some(lang) = &context.language
+            && lang != &self.lexicon.language
+        {
+            return ResolutionResult::NotFound;
+        }
+
+        let scored: Vec<(u32, ResolutionCandidate)> = self
+            .lexicon
+            .forms
+            .iter()
+            .filter(|form| form.text.eq_ignore_ascii_case(text))
+            .flat_map(|form| &form.bindings)
+            .map(|binding| {
+                let (points, evidence) = Self::score(binding, context);
+                (points, ResolutionCandidate {
+                    concept: binding.concept.clone(),
+                    confidence: 0.0, // filled in below once totals are known
+                    evidence,
+                })
+            })
+            .collect();
+
+        if scored.is_empty() {
+            return ResolutionResult::NotFound;
+        }
+
+        let total: u32 = scored.iter().map(|(p, _)| *p).sum();
+        let count = scored.len();
+        let mut candidates: Vec<(u32, ResolutionCandidate)> = scored
+            .into_iter()
+            .map(|(points, mut candidate)| {
+                // With no evidence anywhere, all candidates share confidence
+                // equally; otherwise confidence is the candidate's share of
+                // the total evidence. A ranking aid only — never truth.
+                candidate.confidence = if total == 0 {
+                    1.0 / count as f32
+                } else {
+                    points as f32 / total as f32
+                };
+                (points, candidate)
+            })
+            .collect();
+        candidates.sort_by_key(|(points, _)| std::cmp::Reverse(*points));
+
+        let sole_candidate = candidates.len() == 1;
+        let strictly_dominant =
+            candidates.len() > 1 && candidates[0].0 > candidates[1].0 && candidates[0].0 > 0;
+
+        if sole_candidate || strictly_dominant {
+            ResolutionResult::Resolved(candidates.remove(0).1)
+        } else {
+            // Ties and zero-evidence multi-candidate cases stay ambiguous:
+            // the reasoner never guesses among senses.
+            ResolutionResult::Ambiguous(candidates.into_iter().map(|(_, c)| c).collect())
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn binding(concept: &str, hints: &[&str]) -> LexicalBinding {
+        LexicalBinding {
+            concept: ConceptId(concept.to_string()),
+            context_hints: hints.iter().map(|h| ConceptId(h.to_string())).collect(),
+            usage_examples: vec![],
+            provenance: Provenance::default(),
+        }
+    }
+
+    /// The canonical polysemy fixture from the plan: "bank".
+    fn bank_lexicon() -> ContextResolver {
+        ContextResolver::new(LexicalModule {
+            language: LanguageId::english(),
+            forms: vec![LexicalForm {
+                text: "bank".to_string(),
+                language: LanguageId::english(),
+                part_of_speech: Some(PartOfSpeech::Noun),
+                bindings: vec![
+                    binding(
+                        "finance::bank",
+                        &["finance::loan", "finance::deposit", "finance::account"],
+                    ),
+                    binding(
+                        "geography::river_bank",
+                        &["geography::river", "geography::shore"],
+                    ),
+                ],
+            }],
+        })
+    }
+
+    fn context(surrounding: &[&str]) -> ResolutionContext {
+        ResolutionContext {
+            surrounding_concepts: surrounding.iter().map(|c| ConceptId(c.to_string())).collect(),
+            domain_hint: None,
+            language: None,
+        }
+    }
+
+    #[test]
+    fn polysemy_without_context_is_ambiguous_not_a_union() {
+        let result = bank_lexicon().resolve("bank", &ResolutionContext::default());
+        let ResolutionResult::Ambiguous(candidates) = result else {
+            panic!("expected Ambiguous");
+        };
+        // Distinct candidate concept IDs — never a merged/union concept.
+        let ids: Vec<&str> = candidates.iter().map(|c| c.concept.0.as_str()).collect();
+        assert_eq!(ids.len(), 2);
+        assert!(ids.contains(&"finance::bank"));
+        assert!(ids.contains(&"geography::river_bank"));
+    }
+
+    #[test]
+    fn finance_context_resolves_to_finance_bank() {
+        let result = bank_lexicon().resolve("bank", &context(&["finance::loan"]));
+        let ResolutionResult::Resolved(candidate) = result else {
+            panic!("expected Resolved");
+        };
+        assert_eq!(candidate.concept.0, "finance::bank");
+        assert!(matches!(candidate.evidence[0], ResolutionEvidence::ContextHintMatch { .. }));
+    }
+
+    #[test]
+    fn geography_context_resolves_to_river_bank() {
+        let result = bank_lexicon().resolve("bank", &context(&["geography::river"]));
+        let ResolutionResult::Resolved(candidate) = result else {
+            panic!("expected Resolved");
+        };
+        assert_eq!(candidate.concept.0, "geography::river_bank");
+    }
+
+    #[test]
+    fn conflicting_context_with_equal_evidence_stays_ambiguous() {
+        let result = bank_lexicon().resolve("bank", &context(&["finance::loan", "geography::river"]));
+        assert!(matches!(result, ResolutionResult::Ambiguous(_)));
+    }
+
+    #[test]
+    fn domain_hint_outweighs_single_context_hint() {
+        let ctx = ResolutionContext {
+            surrounding_concepts: vec![ConceptId("finance::loan".to_string())],
+            domain_hint: Some(ConceptId("geography::river".to_string())),
+            language: None,
+        };
+        let ResolutionResult::Resolved(candidate) = bank_lexicon().resolve("bank", &ctx) else {
+            panic!("expected Resolved");
+        };
+        assert_eq!(candidate.concept.0, "geography::river_bank");
+    }
+
+    #[test]
+    fn unknown_word_is_not_found() {
+        let result = bank_lexicon().resolve("zyzzyva", &ResolutionContext::default());
+        assert!(matches!(result, ResolutionResult::NotFound));
+    }
+
+    #[test]
+    fn matching_is_case_insensitive() {
+        let result = bank_lexicon().resolve("Bank", &context(&["finance::deposit"]));
+        assert!(matches!(result, ResolutionResult::Resolved(_)));
+    }
+
+    #[test]
+    fn single_binding_resolves_even_without_context() {
+        let resolver = ContextResolver::new(LexicalModule {
+            language: LanguageId::english(),
+            forms: vec![LexicalForm {
+                text: "square".to_string(),
+                language: LanguageId::english(),
+                part_of_speech: Some(PartOfSpeech::Noun),
+                bindings: vec![binding("geometry::square", &[])],
+            }],
+        });
+        let ResolutionResult::Resolved(candidate) =
+            resolver.resolve("square", &ResolutionContext::default())
+        else {
+            panic!("expected Resolved");
+        };
+        assert_eq!(candidate.concept.0, "geometry::square");
     }
 }

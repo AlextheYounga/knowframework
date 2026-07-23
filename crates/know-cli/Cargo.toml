@@ -14,3 +14,5 @@ know-reasoner  = { workspace = true }
 know-admission = { workspace = true }
 know-owl       = { workspace = true }
 clap           = { workspace = true }
+know-lexicon   = { workspace = true }
+ron            = { workspace = true }

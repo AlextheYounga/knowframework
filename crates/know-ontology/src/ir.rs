@@ -12,7 +12,7 @@ use crate::source::{ConceptStatus, Grounding};
 // Concept expressions (IR — all names resolved to typed IDs)
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ConceptExpr {
     Named(ConceptId),
     And(Vec<ConceptExpr>),
@@ -35,8 +35,71 @@ impl ConceptExpr {
         Self::Or(exprs)
     }
 
+    // Deliberately named after the DL complement operator, not std::ops::Not.
+    #[allow(clippy::should_implement_trait)]
     pub fn not(expr: ConceptExpr) -> Self {
         Self::Not(Box::new(expr))
+    }
+
+    /// True if this expression uses relational restrictions (Exists/ForAll),
+    /// which are outside the Boolean fragment.
+    pub fn uses_relations(&self) -> bool {
+        match self {
+            ConceptExpr::Named(_) => false,
+            ConceptExpr::And(parts) | ConceptExpr::Or(parts) => {
+                parts.iter().any(ConceptExpr::uses_relations)
+            }
+            ConceptExpr::Not(inner) => inner.uses_relations(),
+            ConceptExpr::Exists { .. } | ConceptExpr::ForAll { .. } => true,
+        }
+    }
+
+    /// Every named concept mentioned anywhere in this expression.
+    pub fn named_concepts(&self, out: &mut Vec<ConceptId>) {
+        match self {
+            ConceptExpr::Named(id) => out.push(id.clone()),
+            ConceptExpr::And(parts) | ConceptExpr::Or(parts) => {
+                for p in parts {
+                    p.named_concepts(out);
+                }
+            }
+            ConceptExpr::Not(inner) => inner.named_concepts(out),
+            ConceptExpr::Exists { filler, .. } | ConceptExpr::ForAll { filler, .. } => {
+                filler.named_concepts(out)
+            }
+        }
+    }
+}
+
+impl std::fmt::Display for ConceptExpr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        fn join(
+            f: &mut std::fmt::Formatter<'_>,
+            parts: &[ConceptExpr],
+            op: &str,
+        ) -> std::fmt::Result {
+            write!(f, "(")?;
+            for (i, p) in parts.iter().enumerate() {
+                if i > 0 {
+                    write!(f, " {op} ")?;
+                }
+                write!(f, "{p}")?;
+            }
+            write!(f, ")")
+        }
+
+        match self {
+            ConceptExpr::Named(id) => write!(f, "{}", id.0),
+            ConceptExpr::And(parts) => join(f, parts, "AND"),
+            ConceptExpr::Or(parts) => join(f, parts, "OR"),
+            ConceptExpr::Not(inner) => write!(f, "(NOT {inner})"),
+            ConceptExpr::Exists { relation, filler } => {
+                write!(f, "(EXISTS {}.{filler})", relation.0)
+            }
+            ConceptExpr::ForAll { relation, filler } => {
+                write!(f, "(FOR_ALL {}.{filler})", relation.0)
+            }
+        }
     }
 }
 
@@ -44,7 +107,7 @@ impl ConceptExpr {
 // Axioms (IR)
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Axiom {
     SubclassOf {
         child: ConceptExpr,

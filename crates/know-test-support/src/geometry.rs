@@ -11,8 +11,8 @@
 //!   Red AND Square subclass Large       → Unknown
 
 use know_ontology::{
-    AxiomSource, ConceptExprSource, ConceptRecordSource, ConceptStatus, Grounding,
-    KnowledgeModule, KnowledgeModuleSource,
+    AxiomSource, ConceptExprSource, ConceptRecordSource, ConceptStatus, EntityRecordSource,
+    Grounding, KnowledgeModule, KnowledgeModuleSource,
     compile,
 };
 
@@ -71,6 +71,37 @@ pub fn geometry_module() -> KnowledgeModule {
     compile::compile(geometry_source()).expect("geometry fixture must always compile")
 }
 
+/// Geometry plus one entity asserted to be a square. Consistent; used for
+/// class-membership verdicts (member of Polygon → Entailed, member of
+/// Circle → Contradicted, member of Red → Unknown).
+pub fn geometry_with_square_entity() -> KnowledgeModule {
+    let mut source = geometry_source();
+    source.entities.push(entity("geometry::my_square", "my square"));
+    source.axioms.push(AxiomSource::ClassAssertion {
+        entity: "geometry::my_square".into(),
+        class: ConceptExprSource::Named("geometry::square".into()),
+    });
+    compile::compile(source).expect("square-entity fixture must compile")
+}
+
+/// Geometry plus an entity asserted to be both a square and a circle,
+/// which the disjointness axiom makes impossible. The module compiles
+/// (structurally valid) but is logically inconsistent — required verdict:
+/// every query returns Inconsistent.
+pub fn geometry_with_impossible_entity() -> KnowledgeModule {
+    let mut source = geometry_source();
+    source.entities.push(entity("geometry::weird", "weird thing"));
+    source.axioms.push(AxiomSource::ClassAssertion {
+        entity: "geometry::weird".into(),
+        class: ConceptExprSource::Named("geometry::square".into()),
+    });
+    source.axioms.push(AxiomSource::ClassAssertion {
+        entity: "geometry::weird".into(),
+        class: ConceptExprSource::Named("geometry::circle".into()),
+    });
+    compile::compile(source).expect("impossible-entity fixture must compile structurally")
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -90,6 +121,10 @@ fn concept(
         status,
         provenance: None,
     }
+}
+
+fn entity(id: &str, label: &str) -> EntityRecordSource {
+    EntityRecordSource { id: id.to_string(), label: label.to_string(), provenance: None }
 }
 
 fn subclass(child: &str, parent: &str) -> AxiomSource {
