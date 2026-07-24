@@ -4,13 +4,9 @@ use std::process::ExitCode;
 use clap::{Parser, Subcommand};
 use know_admission::{KnowledgeProposal, Pipeline};
 use know_lexicon::{ContextResolver, ResolutionContext, ResolutionResult, Resolver};
-use know_ontology::{
-    ConceptExpr, ConceptExprSource, KnowledgeModule, KnowledgeModuleSource, compile,
-};
+use know_ontology::{ConceptExpr, ConceptExprSource, KnowledgeModule, KnowledgeModuleSource, compile};
 use know_owl::export_owl_functional;
-use know_reasoner::{
-    BooleanReasoner, Explanation, Proposition, Reasoner, ReasoningOutcome, Verdict,
-};
+use know_reasoner::{BooleanReasoner, Explanation, Proposition, Reasoner, ReasoningOutcome, Verdict};
 
 #[derive(Parser)]
 #[command(name = "know", about = "Know knowledge framework")]
@@ -39,22 +35,13 @@ enum Command {
     ///
     /// An <expr> is a bare concept ID, or a RON concept expression such as
     /// 'And([Named("geometry::red"), Named("geometry::square")])'.
-    Reason {
-        module: PathBuf,
-        query: Vec<String>,
-    },
+    Reason { module: PathBuf, query: Vec<String> },
 
     /// Classify a concept within a module (direct super/sub/equivalent classes).
-    Classify {
-        module: PathBuf,
-        concept: String,
-    },
+    Classify { module: PathBuf, concept: String },
 
     /// Like `reason`, but prints the full explanation artifact.
-    Explain {
-        module: PathBuf,
-        query: Vec<String>,
-    },
+    Explain { module: PathBuf, query: Vec<String> },
 
     /// Resolve a word to candidate canonical concepts using a lexicon module.
     Resolve {
@@ -73,10 +60,7 @@ enum Command {
     ///
     /// TODO: load regression checks from a per-module manifest once their
     /// storage format is specified; currently only the always-on stages run.
-    Admit {
-        module: PathBuf,
-        proposal: PathBuf,
-    },
+    Admit { module: PathBuf, proposal: PathBuf },
 
     /// Export a module to OWL 2 Functional Syntax.
     ExportOwl { module: PathBuf },
@@ -147,8 +131,7 @@ fn run(command: Command) -> Result<(), String> {
 
         Command::Resolve { lexicon, text, context, domain } => {
             let content = read(&lexicon)?;
-            let lexicon = know_lexicon::LexicalModule::from_ron(&content)
-                .map_err(|e| format!("{e}"))?;
+            let lexicon = know_lexicon::LexicalModule::from_ron(&content).map_err(|e| format!("{e}"))?;
             let ctx = ResolutionContext {
                 surrounding_concepts: context
                     .map(|c| c.split(',').map(|s| know_core::ConceptId(s.trim().to_string())).collect())
@@ -174,8 +157,7 @@ fn run(command: Command) -> Result<(), String> {
 
         Command::Admit { module, proposal } => {
             let base = load_module(&module)?;
-            let proposal = KnowledgeProposal::from_ron(&read(&proposal)?)
-                .map_err(|e| format!("proposal: {e}"))?;
+            let proposal = KnowledgeProposal::from_ron(&read(&proposal)?).map_err(|e| format!("proposal: {e}"))?;
             let record = Pipeline::new(base).admit(proposal);
 
             for result in &record.validation_results {
@@ -218,11 +200,7 @@ fn parse_query(words: &[String]) -> Result<Proposition, String> {
 
     let (head, rest) = words.split_first().ok_or(usage)?;
     let arity = |n: usize| -> Result<(), String> {
-        if rest.len() == n {
-            Ok(())
-        } else {
-            Err(format!("'{head}' takes {n} argument(s); {usage}"))
-        }
+        if rest.len() == n { Ok(()) } else { Err(format!("'{head}' takes {n} argument(s); {usage}")) }
     };
 
     match head.as_str() {
@@ -236,24 +214,15 @@ fn parse_query(words: &[String]) -> Result<Proposition, String> {
         }
         "subclass" => {
             arity(2)?;
-            Ok(Proposition::SubclassOf {
-                child: parse_expr(&rest[0])?,
-                parent: parse_expr(&rest[1])?,
-            })
+            Ok(Proposition::SubclassOf { child: parse_expr(&rest[0])?, parent: parse_expr(&rest[1])? })
         }
         "equivalent" => {
             arity(2)?;
-            Ok(Proposition::Equivalent {
-                left: parse_expr(&rest[0])?,
-                right: parse_expr(&rest[1])?,
-            })
+            Ok(Proposition::Equivalent { left: parse_expr(&rest[0])?, right: parse_expr(&rest[1])? })
         }
         "disjoint" => {
             arity(2)?;
-            Ok(Proposition::Disjoint {
-                left: parse_expr(&rest[0])?,
-                right: parse_expr(&rest[1])?,
-            })
+            Ok(Proposition::Disjoint { left: parse_expr(&rest[0])?, right: parse_expr(&rest[1])? })
         }
         "member" => {
             arity(2)?;
@@ -269,8 +238,7 @@ fn parse_query(words: &[String]) -> Result<Proposition, String> {
 /// A bare concept ID, or a RON `ConceptExprSource`.
 fn parse_expr(input: &str) -> Result<ConceptExpr, String> {
     let source = if input.contains('(') {
-        ron::from_str::<ConceptExprSource>(input)
-            .map_err(|e| format!("bad concept expression '{input}': {e}"))?
+        ron::from_str::<ConceptExprSource>(input).map_err(|e| format!("bad concept expression '{input}': {e}"))?
     } else {
         ConceptExprSource::Named(input.to_string())
     };
@@ -282,12 +250,8 @@ fn parse_expr(input: &str) -> Result<ConceptExpr, String> {
 fn expr_from_source(source: ConceptExprSource) -> ConceptExpr {
     match source {
         ConceptExprSource::Named(name) => ConceptExpr::Named(know_core::ConceptId(name)),
-        ConceptExprSource::And(parts) => {
-            ConceptExpr::And(parts.into_iter().map(expr_from_source).collect())
-        }
-        ConceptExprSource::Or(parts) => {
-            ConceptExpr::Or(parts.into_iter().map(expr_from_source).collect())
-        }
+        ConceptExprSource::And(parts) => ConceptExpr::And(parts.into_iter().map(expr_from_source).collect()),
+        ConceptExprSource::Or(parts) => ConceptExpr::Or(parts.into_iter().map(expr_from_source).collect()),
         ConceptExprSource::Not(inner) => ConceptExpr::Not(Box::new(expr_from_source(*inner))),
         ConceptExprSource::Exists { relation, filler } => ConceptExpr::Exists {
             relation: know_core::RelationId(relation),

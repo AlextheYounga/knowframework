@@ -175,11 +175,14 @@ impl Resolver for ContextResolver {
             .flat_map(|form| &form.bindings)
             .map(|binding| {
                 let (points, evidence) = Self::score(binding, context);
-                (points, ResolutionCandidate {
-                    concept: binding.concept.clone(),
-                    confidence: 0.0, // filled in below once totals are known
-                    evidence,
-                })
+                (
+                    points,
+                    ResolutionCandidate {
+                        concept: binding.concept.clone(),
+                        confidence: 0.0, // filled in below once totals are known
+                        evidence,
+                    },
+                )
             })
             .collect();
 
@@ -195,19 +198,14 @@ impl Resolver for ContextResolver {
                 // With no evidence anywhere, all candidates share confidence
                 // equally; otherwise confidence is the candidate's share of
                 // the total evidence. A ranking aid only — never truth.
-                candidate.confidence = if total == 0 {
-                    1.0 / count as f32
-                } else {
-                    points as f32 / total as f32
-                };
+                candidate.confidence = if total == 0 { 1.0 / count as f32 } else { points as f32 / total as f32 };
                 (points, candidate)
             })
             .collect();
         candidates.sort_by_key(|(points, _)| std::cmp::Reverse(*points));
 
         let sole_candidate = candidates.len() == 1;
-        let strictly_dominant =
-            candidates.len() > 1 && candidates[0].0 > candidates[1].0 && candidates[0].0 > 0;
+        let strictly_dominant = candidates.len() > 1 && candidates[0].0 > candidates[1].0 && candidates[0].0 > 0;
 
         if sole_candidate || strictly_dominant {
             ResolutionResult::Resolved(candidates.remove(0).1)
@@ -245,14 +243,8 @@ mod tests {
                 language: LanguageId::english(),
                 part_of_speech: Some(PartOfSpeech::Noun),
                 bindings: vec![
-                    binding(
-                        "finance::bank",
-                        &["finance::loan", "finance::deposit", "finance::account"],
-                    ),
-                    binding(
-                        "geography::river_bank",
-                        &["geography::river", "geography::shore"],
-                    ),
+                    binding("finance::bank", &["finance::loan", "finance::deposit", "finance::account"]),
+                    binding("geography::river_bank", &["geography::river", "geography::shore"]),
                 ],
             }],
         })
@@ -340,9 +332,7 @@ mod tests {
                 bindings: vec![binding("geometry::square", &[])],
             }],
         });
-        let ResolutionResult::Resolved(candidate) =
-            resolver.resolve("square", &ResolutionContext::default())
-        else {
+        let ResolutionResult::Resolved(candidate) = resolver.resolve("square", &ResolutionContext::default()) else {
             panic!("expected Resolved");
         };
         assert_eq!(candidate.concept.0, "geometry::square");

@@ -11,9 +11,8 @@
 //!   Red AND Square subclass Large       → Unknown
 
 use know_ontology::{
-    AxiomSource, ConceptExprSource, ConceptRecordSource, ConceptStatus, EntityRecordSource,
-    Grounding, KnowledgeModule, KnowledgeModuleSource,
-    compile,
+    AxiomSource, ConceptExprSource, ConceptRecordSource, ConceptStatus, EntityRecordSource, Grounding, KnowledgeModule,
+    KnowledgeModuleSource, compile,
 };
 
 pub fn geometry_source() -> KnowledgeModuleSource {
@@ -22,13 +21,13 @@ pub fn geometry_source() -> KnowledgeModuleSource {
         schema_version: 1,
         concepts: vec![
             concept("geometry::spatial_object", "spatial object", ConceptStatus::Primitive, None),
-            concept("geometry::figure",         "figure",         ConceptStatus::Declared,  None),
-            concept("geometry::closed_figure",  "closed figure",  ConceptStatus::Declared,  None),
-            concept("geometry::polygon",        "polygon",        ConceptStatus::Declared,  None),
-            concept("geometry::quadrilateral",  "quadrilateral",  ConceptStatus::Declared,  None),
-            concept("geometry::triangle",       "triangle",       ConceptStatus::Declared,  None),
-            concept("geometry::rectangle",      "rectangle",      ConceptStatus::Declared,  None),
-            concept("geometry::rhombus",        "rhombus",        ConceptStatus::Declared,  None),
+            concept("geometry::figure", "figure", ConceptStatus::Declared, None),
+            concept("geometry::closed_figure", "closed figure", ConceptStatus::Declared, None),
+            concept("geometry::polygon", "polygon", ConceptStatus::Declared, None),
+            concept("geometry::quadrilateral", "quadrilateral", ConceptStatus::Declared, None),
+            concept("geometry::triangle", "triangle", ConceptStatus::Declared, None),
+            concept("geometry::rectangle", "rectangle", ConceptStatus::Declared, None),
+            concept("geometry::rhombus", "rhombus", ConceptStatus::Declared, None),
             concept(
                 "geometry::square",
                 "square",
@@ -40,7 +39,7 @@ pub fn geometry_source() -> KnowledgeModuleSource {
             ),
             concept("geometry::circle", "circle", ConceptStatus::Declared, None),
             // Used to demonstrate Unknown verdicts.
-            concept("geometry::red",   "red",   ConceptStatus::Primitive, None),
+            concept("geometry::red", "red", ConceptStatus::Primitive, None),
             concept("geometry::large", "large", ConceptStatus::Primitive, None),
         ],
         relations: vec![],
@@ -48,14 +47,14 @@ pub fn geometry_source() -> KnowledgeModuleSource {
         axioms: vec![
             // Taxonomy (expressed as SubclassOf axioms so the reasoner can
             // compute transitive closure).
-            subclass("geometry::figure",        "geometry::spatial_object"),
+            subclass("geometry::figure", "geometry::spatial_object"),
             subclass("geometry::closed_figure", "geometry::figure"),
-            subclass("geometry::polygon",       "geometry::closed_figure"),
+            subclass("geometry::polygon", "geometry::closed_figure"),
             subclass("geometry::quadrilateral", "geometry::polygon"),
-            subclass("geometry::triangle",      "geometry::polygon"),
-            subclass("geometry::rectangle",     "geometry::quadrilateral"),
-            subclass("geometry::rhombus",       "geometry::quadrilateral"),
-            subclass("geometry::circle",        "geometry::closed_figure"),
+            subclass("geometry::triangle", "geometry::polygon"),
+            subclass("geometry::rectangle", "geometry::quadrilateral"),
+            subclass("geometry::rhombus", "geometry::quadrilateral"),
+            subclass("geometry::circle", "geometry::closed_figure"),
             // Polygon and Circle are disjoint.
             AxiomSource::DisjointClasses {
                 classes: vec![
@@ -106,12 +105,7 @@ pub fn geometry_with_impossible_entity() -> KnowledgeModule {
 // Helpers
 // ---------------------------------------------------------------------------
 
-fn concept(
-    id: &str,
-    label: &str,
-    status: ConceptStatus,
-    definition: Option<ConceptExprSource>,
-) -> ConceptRecordSource {
+fn concept(id: &str, label: &str, status: ConceptStatus, definition: Option<ConceptExprSource>) -> ConceptRecordSource {
     ConceptRecordSource {
         id: id.to_string(),
         label: label.to_string(),

@@ -27,168 +27,17 @@
 //! "stable across independent generator runs", or arbitration between two
 //! valid but mutually incompatible proposals for the same concept.
 
-use know_core::{ConceptId, Diagnostic, Provenance, Severity, codes};
+mod timestamp;
+pub mod types;
+
+pub use types::*;
+
+use know_core::{ConceptId, Diagnostic, Severity, codes};
 use know_lexicon::LexicalForm;
-use know_ontology::{
-    AxiomSource, ConceptRecordSource, EntityRecordSource, KnowledgeModuleSource,
-    RelationRecordSource, compile,
-};
-use know_reasoner::{
-    BooleanReasoner, Proposition, Reasoner, ReasoningOutcome, Verdict,
-};
-use serde::{Deserialize, Serialize};
+use know_ontology::{KnowledgeModuleSource, compile};
+use know_reasoner::{BooleanReasoner, Reasoner, ReasoningOutcome, Verdict};
 
-// ---------------------------------------------------------------------------
-// Proposal
-// ---------------------------------------------------------------------------
-
-/// Source evidence that accompanied the LLM's extraction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SourceEvidence {
-    pub kind: EvidenceKind,
-    pub text: String,
-    pub reference: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum EvidenceKind {
-    Text,
-    WebPage,
-    Document,
-    HumanAnnotation,
-    LlmExtraction,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GeneratorIdentity {
-    pub kind: GeneratorKind,
-    pub model_id: Option<String>,
-    pub run_id: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum GeneratorKind {
-    Llm,
-    Human,
-    Import,
-    Automated,
-}
-
-/// A bundle of additions proposed by an LLM or other source.
-///
-/// Proposals use source-layer types so they can arrive as raw RON before
-/// any resolution occurs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct KnowledgeProposal {
-    pub proposal_id: String,
-    #[serde(default)]
-    pub proposed_concepts: Vec<ConceptRecordSource>,
-    #[serde(default)]
-    pub proposed_relations: Vec<RelationRecordSource>,
-    #[serde(default)]
-    pub proposed_entities: Vec<EntityRecordSource>,
-    #[serde(default)]
-    pub proposed_axioms: Vec<AxiomSource>,
-    #[serde(default)]
-    pub lexical_bindings: Vec<LexicalForm>,
-    #[serde(default)]
-    pub source_evidence: Vec<SourceEvidence>,
-    pub generated_by: GeneratorIdentity,
-}
-
-impl KnowledgeProposal {
-    pub fn from_ron(input: &str) -> Result<Self, ron::error::SpannedError> {
-        ron::from_str(input)
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Decision and audit record
-// ---------------------------------------------------------------------------
-
-#[derive(Debug, Clone)]
-pub enum AdmissionDecision {
-    Accepted,
-    AcceptedWithWarnings(Vec<Diagnostic>),
-    Rejected(Vec<Diagnostic>),
-    /// Lexical interpretation of at least one term is unresolved.
-    DeferredForAmbiguity(Vec<Diagnostic>),
-    /// At least one concept lacks the grounding needed to validate it.
-    DeferredForGrounding(Vec<Diagnostic>),
-    /// The proposal is logically incompatible with already-accepted knowledge.
-    ConflictsWithExistingKnowledge(Vec<Diagnostic>),
-}
-
-/// The result of running a single pipeline stage.
-#[derive(Debug, Clone)]
-pub struct ValidationResult {
-    pub stage: ValidationStage,
-    pub passed: bool,
-    pub diagnostics: Vec<Diagnostic>,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ValidationStage {
-    Structural,
-    Lexical,
-    Ontological,
-    Logical,
-    Regression,
-}
-
-/// A before/after change in verdict caused by the proposed knowledge.
-#[derive(Debug, Clone)]
-pub struct VerdictDiff {
-    pub proposition: String,
-    pub before: Option<Verdict>,
-    pub after: Option<Verdict>,
-}
-
-/// Full audit record for one admission attempt.
-#[derive(Debug, Clone)]
-pub struct AdmissionRecord {
-    pub id: String,
-    pub proposal_id: String,
-    pub decision: AdmissionDecision,
-    pub validation_results: Vec<ValidationResult>,
-    pub changed_verdicts: Vec<VerdictDiff>,
-    pub generated_by: GeneratorIdentity,
-    /// ISO 8601 timestamp (UTC).
-    pub timestamp: String,
-    pub provenance: Provenance,
-}
-
-// ---------------------------------------------------------------------------
-// Regression checks
-// ---------------------------------------------------------------------------
-
-/// A previously accepted verdict that must survive new knowledge.
-///
-/// Every semantic bug becomes a permanent check here (plan §14).
-#[derive(Debug, Clone)]
-pub struct RegressionCheck {
-    pub description: String,
-    pub proposition: Proposition,
-    pub expected: ExpectedVerdict,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ExpectedVerdict {
-    Entailed,
-    Contradicted,
-    Unknown,
-}
-
-impl ExpectedVerdict {
-    fn matches(self, verdict: &Verdict) -> bool {
-        matches!(
-            (self, verdict),
-            (ExpectedVerdict::Entailed, Verdict::Entailed(_))
-                | (ExpectedVerdict::Contradicted, Verdict::Contradicted(_))
-                | (ExpectedVerdict::Unknown, Verdict::Unknown(_))
-        )
-    }
-}
+use self::timestamp::iso8601_now;
 
 // ---------------------------------------------------------------------------
 // Pipeline
@@ -236,10 +85,7 @@ impl Pipeline {
         stages.push(stage(ValidationStage::Structural, structural_diags));
 
         // --- 2. Lexical -----------------------------------------------------
-        stages.push(stage(
-            ValidationStage::Lexical,
-            check_lexical(&proposal.lexical_bindings, &merged_source),
-        ));
+        stages.push(stage(ValidationStage::Lexical, check_lexical(&proposal.lexical_bindings, &merged_source)));
 
         // --- 3. Ontological -------------------------------------------------
         // Grounding compatibility rules are not yet specified (see module
@@ -271,16 +117,13 @@ impl Pipeline {
             changed_verdicts,
             generated_by: proposal.generated_by,
             timestamp: iso8601_now(),
-            provenance: Provenance::default(),
+            provenance: know_core::Provenance::default(),
         }
     }
 
     /// Re-run accepted verdicts against the merged module and diff them
     /// against the base module's verdicts.
-    fn check_regression(
-        &self,
-        merged_reasoner: &BooleanReasoner,
-    ) -> (Vec<Diagnostic>, Vec<VerdictDiff>) {
+    fn check_regression(&self, merged_reasoner: &BooleanReasoner) -> (Vec<Diagnostic>, Vec<VerdictDiff>) {
         let mut diagnostics = vec![];
         let mut diffs = vec![];
 
@@ -288,9 +131,7 @@ impl Pipeline {
 
         for check in &self.regression_checks {
             let after = complete_verdict(merged_reasoner.query(&check.proposition));
-            let before = base_reasoner
-                .as_ref()
-                .and_then(|r| complete_verdict(r.query(&check.proposition)));
+            let before = base_reasoner.as_ref().and_then(|r| complete_verdict(r.query(&check.proposition)));
 
             let holds = after.as_ref().is_some_and(|v| check.expected.matches(v));
             if !holds {
@@ -310,11 +151,7 @@ impl Pipeline {
                 _ => true,
             };
             if changed {
-                diffs.push(VerdictDiff {
-                    proposition: check.proposition.to_string(),
-                    before,
-                    after,
-                });
+                diffs.push(VerdictDiff { proposition: check.proposition.to_string(), before, after });
             }
         }
 
@@ -348,10 +185,7 @@ fn check_lexical(bindings: &[LexicalForm], merged: &KnowledgeModuleSource) -> Ve
             if !merged.concepts.iter().any(|c| c.id == binding.concept.0) {
                 diagnostics.push(Diagnostic::error(
                     codes::INVALID_SENSE_BINDING,
-                    format!(
-                        "lexical form '{}' binds to undeclared concept {}",
-                        form.text, binding.concept.0
-                    ),
+                    format!("lexical form '{}' binds to undeclared concept {}", form.text, binding.concept.0),
                 ));
             }
         }
@@ -456,18 +290,10 @@ fn stage(kind: ValidationStage, diagnostics: Vec<Diagnostic>) -> ValidationResul
 }
 
 fn decide(stages: &[ValidationResult], conflict: bool) -> AdmissionDecision {
-    let errors: Vec<Diagnostic> = stages
-        .iter()
-        .flat_map(|s| &s.diagnostics)
-        .filter(|d| d.severity == Severity::Error)
-        .cloned()
-        .collect();
-    let warnings: Vec<Diagnostic> = stages
-        .iter()
-        .flat_map(|s| &s.diagnostics)
-        .filter(|d| d.severity == Severity::Warning)
-        .cloned()
-        .collect();
+    let errors: Vec<Diagnostic> =
+        stages.iter().flat_map(|s| &s.diagnostics).filter(|d| d.severity == Severity::Error).cloned().collect();
+    let warnings: Vec<Diagnostic> =
+        stages.iter().flat_map(|s| &s.diagnostics).filter(|d| d.severity == Severity::Warning).cloned().collect();
 
     if conflict {
         AdmissionDecision::ConflictsWithExistingKnowledge(errors)
@@ -484,271 +310,5 @@ fn complete_verdict(outcome: ReasoningOutcome<Verdict>) -> Option<Verdict> {
     match outcome {
         ReasoningOutcome::Complete(v) => Some(v),
         _ => None,
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Timestamp (UTC, ISO 8601) without a chrono dependency
-// ---------------------------------------------------------------------------
-
-fn iso8601_now() -> String {
-    let secs = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
-    iso8601_from_unix(secs)
-}
-
-fn iso8601_from_unix(secs: u64) -> String {
-    let days = secs / 86_400;
-    let rem = secs % 86_400;
-    let (hour, minute, second) = (rem / 3600, (rem % 3600) / 60, rem % 60);
-
-    // Civil-from-days (Howard Hinnant's algorithm), valid for the Unix era.
-    let z = days as i64 + 719_468;
-    let era = z / 146_097;
-    let doe = z - era * 146_097;
-    let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
-    let year = yoe + era * 400;
-    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-    let mp = (5 * doy + 2) / 153;
-    let day = doy - (153 * mp + 2) / 5 + 1;
-    let month = if mp < 10 { mp + 3 } else { mp - 9 };
-    let year = if month <= 2 { year + 1 } else { year };
-
-    format!("{year:04}-{month:02}-{day:02}T{hour:02}:{minute:02}:{second:02}Z")
-}
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use know_ontology::{ConceptExprSource, ConceptStatus};
-    use know_test_support::geometry::geometry_source;
-
-    fn generator() -> GeneratorIdentity {
-        GeneratorIdentity {
-            kind: GeneratorKind::Llm,
-            model_id: Some("test-model".into()),
-            run_id: "run-1".into(),
-        }
-    }
-
-    fn proposal(id: &str) -> KnowledgeProposal {
-        KnowledgeProposal {
-            proposal_id: id.into(),
-            proposed_concepts: vec![],
-            proposed_relations: vec![],
-            proposed_entities: vec![],
-            proposed_axioms: vec![],
-            lexical_bindings: vec![],
-            source_evidence: vec![],
-            generated_by: generator(),
-        }
-    }
-
-    fn concept(id: &str, status: ConceptStatus, definition: Option<ConceptExprSource>) -> ConceptRecordSource {
-        ConceptRecordSource {
-            id: id.into(),
-            label: id.into(),
-            alternate_labels: vec![],
-            definition,
-            grounding: None,
-            status,
-            provenance: None,
-        }
-    }
-
-    fn pipeline() -> Pipeline {
-        Pipeline::new(geometry_source())
-    }
-
-    fn decision_errors(decision: &AdmissionDecision) -> &[Diagnostic] {
-        match decision {
-            AdmissionDecision::Rejected(d)
-            | AdmissionDecision::ConflictsWithExistingKnowledge(d)
-            | AdmissionDecision::AcceptedWithWarnings(d) => d,
-            _ => &[],
-        }
-    }
-
-    #[test]
-    fn valid_proposal_is_accepted() {
-        let mut p = proposal("pentagon");
-        p.proposed_concepts.push(concept("geometry::pentagon", ConceptStatus::Declared, None));
-        p.proposed_axioms.push(AxiomSource::SubclassOf {
-            child: ConceptExprSource::Named("geometry::pentagon".into()),
-            parent: ConceptExprSource::Named("geometry::polygon".into()),
-        });
-
-        let record = pipeline().admit(p);
-        assert!(matches!(record.decision, AdmissionDecision::Accepted), "{:?}", record.decision);
-        assert!(record.validation_results.iter().all(|s| s.passed));
-        assert_eq!(record.validation_results.len(), 5, "all five stages must run");
-    }
-
-    #[test]
-    fn unresolved_reference_is_rejected() {
-        let mut p = proposal("bad-ref");
-        p.proposed_axioms.push(AxiomSource::SubclassOf {
-            child: ConceptExprSource::Named("geometry::heptagon".into()),
-            parent: ConceptExprSource::Named("geometry::polygon".into()),
-        });
-
-        let record = pipeline().admit(p);
-        let AdmissionDecision::Rejected(diags) = &record.decision else {
-            panic!("expected Rejected, got {:?}", record.decision);
-        };
-        assert!(diags.iter().any(|d| d.code == codes::UNRESOLVED_CONCEPT));
-    }
-
-    #[test]
-    fn duplicate_concept_id_is_rejected() {
-        let mut p = proposal("dup");
-        p.proposed_concepts.push(concept("geometry::square", ConceptStatus::Declared, None));
-
-        let record = pipeline().admit(p);
-        assert!(
-            decision_errors(&record.decision).iter().any(|d| d.code == codes::DUPLICATE_ID),
-            "{:?}",
-            record.decision
-        );
-    }
-
-    #[test]
-    fn inconsistent_proposal_conflicts_with_existing_knowledge() {
-        let mut p = proposal("weird-entity");
-        p.proposed_entities.push(EntityRecordSource {
-            id: "geometry::weird".into(),
-            label: "weird".into(),
-            provenance: None,
-        });
-        p.proposed_axioms.push(AxiomSource::ClassAssertion {
-            entity: "geometry::weird".into(),
-            class: ConceptExprSource::Named("geometry::square".into()),
-        });
-        p.proposed_axioms.push(AxiomSource::ClassAssertion {
-            entity: "geometry::weird".into(),
-            class: ConceptExprSource::Named("geometry::circle".into()),
-        });
-
-        let record = pipeline().admit(p);
-        assert!(
-            matches!(record.decision, AdmissionDecision::ConflictsWithExistingKnowledge(_)),
-            "{:?}",
-            record.decision
-        );
-    }
-
-    #[test]
-    fn unsatisfiable_proposed_concept_is_rejected() {
-        let mut p = proposal("squircle");
-        p.proposed_concepts.push(concept(
-            "geometry::squircle",
-            ConceptStatus::Defined,
-            Some(ConceptExprSource::And(vec![
-                ConceptExprSource::Named("geometry::square".into()),
-                ConceptExprSource::Named("geometry::circle".into()),
-            ])),
-        ));
-
-        let record = pipeline().admit(p);
-        assert!(
-            decision_errors(&record.decision).iter().any(|d| d.code == codes::UNSATISFIABLE_CONCEPT),
-            "{:?}",
-            record.decision
-        );
-    }
-
-    #[test]
-    fn collapsing_definition_is_accepted_with_warning() {
-        // Same definition as geometry::square — logically equivalent.
-        let mut p = proposal("collapse");
-        p.proposed_concepts.push(concept(
-            "geometry::equilateral_rectangle",
-            ConceptStatus::Defined,
-            Some(ConceptExprSource::And(vec![
-                ConceptExprSource::Named("geometry::rectangle".into()),
-                ConceptExprSource::Named("geometry::rhombus".into()),
-            ])),
-        ));
-
-        let record = pipeline().admit(p);
-        let AdmissionDecision::AcceptedWithWarnings(warnings) = &record.decision else {
-            panic!("expected AcceptedWithWarnings, got {:?}", record.decision);
-        };
-        assert!(warnings.iter().any(|d| {
-            d.code == codes::CONCEPT_COLLAPSE && d.message.contains("geometry::square")
-        }));
-    }
-
-    #[test]
-    fn regression_failure_is_rejected_with_verdict_diff() {
-        use know_ontology::ConceptExpr;
-
-        // Base invariant: square is satisfiable.
-        let checks = vec![RegressionCheck {
-            description: "square remains satisfiable".into(),
-            proposition: Proposition::Satisfiable {
-                class: ConceptExpr::named("geometry::square"),
-            },
-            expected: ExpectedVerdict::Entailed,
-        }];
-
-        // The proposal makes rectangle and rhombus disjoint, so square
-        // (their intersection) becomes unsatisfiable.
-        let mut p = proposal("bad-disjointness");
-        p.proposed_axioms.push(AxiomSource::DisjointClasses {
-            classes: vec![
-                ConceptExprSource::Named("geometry::rectangle".into()),
-                ConceptExprSource::Named("geometry::rhombus".into()),
-            ],
-        });
-
-        let record = Pipeline::new(geometry_source()).with_regression_checks(checks).admit(p);
-        assert!(
-            decision_errors(&record.decision).iter().any(|d| d.code == codes::ADMISSION_REGRESSION),
-            "{:?}",
-            record.decision
-        );
-        assert_eq!(record.changed_verdicts.len(), 1);
-        let diff = &record.changed_verdicts[0];
-        assert_eq!(diff.before.as_ref().map(|v| v.kind()), Some("Entailed"));
-        assert_eq!(diff.after.as_ref().map(|v| v.kind()), Some("Contradicted"));
-    }
-
-    #[test]
-    fn lexical_binding_to_missing_concept_is_rejected() {
-        use know_core::{ConceptId, LanguageId};
-        use know_lexicon::LexicalBinding;
-
-        let mut p = proposal("bad-lexical");
-        p.lexical_bindings.push(LexicalForm {
-            text: "megagon".into(),
-            language: LanguageId::english(),
-            part_of_speech: None,
-            bindings: vec![LexicalBinding {
-                concept: ConceptId("geometry::megagon".into()),
-                context_hints: vec![],
-                usage_examples: vec![],
-                provenance: Provenance::default(),
-            }],
-        });
-
-        let record = pipeline().admit(p);
-        assert!(
-            decision_errors(&record.decision).iter().any(|d| d.code == codes::INVALID_SENSE_BINDING),
-            "{:?}",
-            record.decision
-        );
-    }
-
-    #[test]
-    fn timestamps_are_iso8601() {
-        assert_eq!(iso8601_from_unix(0), "1970-01-01T00:00:00Z");
-        assert_eq!(iso8601_from_unix(1_753_228_800), "2025-07-23T00:00:00Z");
     }
 }

@@ -35,10 +35,7 @@ impl Formula {
 
     /// left ↔ right.
     pub fn iff(left: Formula, right: Formula) -> Formula {
-        Formula::And(vec![
-            Formula::implies(left.clone(), right.clone()),
-            Formula::implies(right, left),
-        ])
+        Formula::And(vec![Formula::implies(left.clone(), right.clone()), Formula::implies(right, left)])
     }
 }
 
@@ -310,10 +307,7 @@ mod tests {
 
     #[test]
     fn or_needs_only_one_branch() {
-        let f = Formula::And(vec![
-            Formula::Or(vec![Formula::Var(0), Formula::Var(1)]),
-            Formula::not(Formula::Var(0)),
-        ]);
+        let f = Formula::And(vec![Formula::Or(vec![Formula::Var(0), Formula::Var(1)]), Formula::not(Formula::Var(0))]);
         assert!(sat(&[f], 2));
     }
 
@@ -332,11 +326,7 @@ mod tests {
     #[test]
     fn iff_is_symmetric() {
         // a↔b, a, ¬b is unsatisfiable.
-        let formulas = [
-            Formula::iff(Formula::Var(0), Formula::Var(1)),
-            Formula::Var(0),
-            Formula::not(Formula::Var(1)),
-        ];
+        let formulas = [Formula::iff(Formula::Var(0), Formula::Var(1)), Formula::Var(0), Formula::not(Formula::Var(1))];
         assert!(!sat(&formulas, 2));
     }
 

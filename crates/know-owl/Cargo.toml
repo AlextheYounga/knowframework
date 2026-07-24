@@ -3,6 +3,9 @@ name = "know-owl"
 version.workspace = true
 edition.workspace = true
 
+[lints]
+workspace = true
+
 [dependencies]
 know-core     = { workspace = true }
 know-ontology = { workspace = true }

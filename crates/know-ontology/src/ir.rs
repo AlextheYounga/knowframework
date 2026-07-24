@@ -46,9 +46,7 @@ impl ConceptExpr {
     pub fn uses_relations(&self) -> bool {
         match self {
             ConceptExpr::Named(_) => false,
-            ConceptExpr::And(parts) | ConceptExpr::Or(parts) => {
-                parts.iter().any(ConceptExpr::uses_relations)
-            }
+            ConceptExpr::And(parts) | ConceptExpr::Or(parts) => parts.iter().any(ConceptExpr::uses_relations),
             ConceptExpr::Not(inner) => inner.uses_relations(),
             ConceptExpr::Exists { .. } | ConceptExpr::ForAll { .. } => true,
         }
@@ -64,20 +62,14 @@ impl ConceptExpr {
                 }
             }
             ConceptExpr::Not(inner) => inner.named_concepts(out),
-            ConceptExpr::Exists { filler, .. } | ConceptExpr::ForAll { filler, .. } => {
-                filler.named_concepts(out)
-            }
+            ConceptExpr::Exists { filler, .. } | ConceptExpr::ForAll { filler, .. } => filler.named_concepts(out),
         }
     }
 }
 
 impl std::fmt::Display for ConceptExpr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        fn join(
-            f: &mut std::fmt::Formatter<'_>,
-            parts: &[ConceptExpr],
-            op: &str,
-        ) -> std::fmt::Result {
+        fn join(f: &mut std::fmt::Formatter<'_>, parts: &[ConceptExpr], op: &str) -> std::fmt::Result {
             write!(f, "(")?;
             for (i, p) in parts.iter().enumerate() {
                 if i > 0 {
@@ -109,34 +101,13 @@ impl std::fmt::Display for ConceptExpr {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Axiom {
-    SubclassOf {
-        child: ConceptExpr,
-        parent: ConceptExpr,
-    },
-    EquivalentClasses {
-        classes: Vec<ConceptExpr>,
-    },
-    DisjointClasses {
-        classes: Vec<ConceptExpr>,
-    },
-    ClassAssertion {
-        entity: EntityId,
-        class: ConceptExpr,
-    },
-    RelationAssertion {
-        subject: EntityId,
-        relation: RelationId,
-        object: EntityId,
-    },
-    NegativeClassAssertion {
-        entity: EntityId,
-        class: ConceptExpr,
-    },
-    NegativeRelationAssertion {
-        subject: EntityId,
-        relation: RelationId,
-        object: EntityId,
-    },
+    SubclassOf { child: ConceptExpr, parent: ConceptExpr },
+    EquivalentClasses { classes: Vec<ConceptExpr> },
+    DisjointClasses { classes: Vec<ConceptExpr> },
+    ClassAssertion { entity: EntityId, class: ConceptExpr },
+    RelationAssertion { subject: EntityId, relation: RelationId, object: EntityId },
+    NegativeClassAssertion { entity: EntityId, class: ConceptExpr },
+    NegativeRelationAssertion { subject: EntityId, relation: RelationId, object: EntityId },
 }
 
 #[derive(Debug, Clone)]

@@ -7,6 +7,9 @@ edition.workspace = true
 name = "know"
 path = "src/main.rs"
 
+[lints]
+workspace = true
+
 [dependencies]
 know-core      = { workspace = true }
 know-ontology  = { workspace = true }

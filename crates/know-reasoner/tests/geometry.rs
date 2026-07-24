@@ -8,12 +8,8 @@
 //!   entity asserted Square and Circle   → Inconsistent
 
 use know_ontology::ConceptExpr;
-use know_reasoner::{
-    BooleanReasoner, Proposition, Reasoner, ReasoningOutcome, Verdict,
-};
-use know_test_support::geometry::{
-    geometry_module, geometry_with_impossible_entity, geometry_with_square_entity,
-};
+use know_reasoner::{BooleanReasoner, Proposition, Reasoner, ReasoningOutcome, Verdict};
+use know_test_support::geometry::{geometry_module, geometry_with_impossible_entity, geometry_with_square_entity};
 
 fn named(id: &str) -> ConceptExpr {
     ConceptExpr::named(id)
@@ -47,10 +43,7 @@ fn square_is_subclass_of_rectangle() {
     };
     // The proof must rest on the definition of square.
     assert!(
-        explanation
-            .supporting_axioms
-            .iter()
-            .any(|a| a.0 == "definition:geometry::square"),
+        explanation.supporting_axioms.iter().any(|a| a.0 == "definition:geometry::square"),
         "explanation should cite the square definition: {:?}",
         explanation.supporting_axioms
     );
@@ -159,10 +152,7 @@ fn square_is_equivalent_to_its_definition() {
         &reasoner,
         Proposition::Equivalent {
             left: named("geometry::square"),
-            right: ConceptExpr::and(vec![
-                named("geometry::rectangle"),
-                named("geometry::rhombus"),
-            ]),
+            right: ConceptExpr::and(vec![named("geometry::rectangle"), named("geometry::rhombus")]),
         },
     );
     assert_eq!(verdict.kind(), "Entailed");
@@ -172,13 +162,8 @@ fn square_is_equivalent_to_its_definition() {
 fn triangle_and_circle_are_disjoint_via_hierarchy() {
     // triangle ⊑ polygon, and polygon is disjoint with circle.
     let reasoner = BooleanReasoner::new(&geometry_module());
-    let verdict = query(
-        &reasoner,
-        Proposition::Disjoint {
-            left: named("geometry::triangle"),
-            right: named("geometry::circle"),
-        },
-    );
+    let verdict =
+        query(&reasoner, Proposition::Disjoint { left: named("geometry::triangle"), right: named("geometry::circle") });
     assert_eq!(verdict.kind(), "Entailed");
 }
 
@@ -189,10 +174,7 @@ fn rectangle_rhombus_disjointness_is_unknown() {
     let reasoner = BooleanReasoner::new(&geometry_module());
     let verdict = query(
         &reasoner,
-        Proposition::Disjoint {
-            left: named("geometry::rectangle"),
-            right: named("geometry::rhombus"),
-        },
+        Proposition::Disjoint { left: named("geometry::rectangle"), right: named("geometry::rhombus") },
     );
     assert_eq!(verdict.kind(), "Unknown");
 }
@@ -240,14 +222,10 @@ fn classify_square_finds_direct_parents() {
         other => panic!("expected Complete, got {other:?}"),
     };
 
-    let supers: Vec<&str> =
-        result.direct_superclasses.iter().map(|c| c.0.as_str()).collect();
+    let supers: Vec<&str> = result.direct_superclasses.iter().map(|c| c.0.as_str()).collect();
     assert!(supers.contains(&"geometry::rectangle"), "direct supers: {supers:?}");
     assert!(supers.contains(&"geometry::rhombus"), "direct supers: {supers:?}");
-    assert!(
-        !supers.contains(&"geometry::polygon"),
-        "polygon is an indirect superclass: {supers:?}"
-    );
+    assert!(!supers.contains(&"geometry::polygon"), "polygon is an indirect superclass: {supers:?}");
     assert!(result.direct_subclasses.is_empty());
     assert!(result.equivalent_classes.is_empty());
 }
@@ -288,8 +266,7 @@ fn entailed_subclass_implies_child_and_not_parent_unsatisfiable() {
 #[test]
 fn entailed_disjointness_implies_conjunction_unsatisfiable() {
     let reasoner = BooleanReasoner::new(&geometry_module());
-    let conjunction =
-        ConceptExpr::and(vec![named("geometry::polygon"), named("geometry::circle")]);
+    let conjunction = ConceptExpr::and(vec![named("geometry::polygon"), named("geometry::circle")]);
     match reasoner.is_satisfiable(&conjunction) {
         ReasoningOutcome::Complete(satisfiable) => assert!(!satisfiable),
         other => panic!("expected Complete, got {other:?}"),

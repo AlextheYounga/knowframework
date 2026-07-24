@@ -26,34 +26,13 @@ pub enum ConceptExprSource {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum AxiomSource {
-    SubclassOf {
-        child: ConceptExprSource,
-        parent: ConceptExprSource,
-    },
-    EquivalentClasses {
-        classes: Vec<ConceptExprSource>,
-    },
-    DisjointClasses {
-        classes: Vec<ConceptExprSource>,
-    },
-    ClassAssertion {
-        entity: String,
-        class: ConceptExprSource,
-    },
-    RelationAssertion {
-        subject: String,
-        relation: String,
-        object: String,
-    },
-    NegativeClassAssertion {
-        entity: String,
-        class: ConceptExprSource,
-    },
-    NegativeRelationAssertion {
-        subject: String,
-        relation: String,
-        object: String,
-    },
+    SubclassOf { child: ConceptExprSource, parent: ConceptExprSource },
+    EquivalentClasses { classes: Vec<ConceptExprSource> },
+    DisjointClasses { classes: Vec<ConceptExprSource> },
+    ClassAssertion { entity: String, class: ConceptExprSource },
+    RelationAssertion { subject: String, relation: String, object: String },
+    NegativeClassAssertion { entity: String, class: ConceptExprSource },
+    NegativeRelationAssertion { subject: String, relation: String, object: String },
 }
 
 // ---------------------------------------------------------------------------

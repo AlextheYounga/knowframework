@@ -33,27 +33,27 @@
 //! `definition:<concept-id>`). `Deprecated` definitions are retained as data
 //! but contribute no axioms.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
-use know_core::{AxiomId, ConceptId, Diagnostic, EntityId, codes};
+use know_core::{AxiomId, ConceptId, Diagnostic, EntityId};
 use know_ontology::{Axiom, ConceptExpr, ConceptStatus, KnowledgeModule};
 
 use crate::sat::{CnfBuilder, Formula, Var};
-use crate::{
-    ClassificationResult, Explanation, InconsistencyReport, InferenceRule, InferenceStep,
-    Proposition, Reasoner, ReasoningOutcome, UnknownExplanation, UnsupportedFeature, Verdict,
-};
+use crate::{InconsistencyReport, Proposition, UnsupportedFeature};
 
 // ---------------------------------------------------------------------------
 // Translated axioms
 // ---------------------------------------------------------------------------
 
+mod query;
+mod reasoner_impl;
+
 #[derive(Debug, Clone)]
-struct TranslatedAxiom {
-    id: AxiomId,
-    formula: Formula,
+pub(super) struct TranslatedAxiom {
+    pub(super) id: AxiomId,
+    pub(super) formula: Formula,
     /// Proposition form for explanation premises, where one exists.
-    as_proposition: Option<Proposition>,
+    pub(super) as_proposition: Option<Proposition>,
 }
 
 // ---------------------------------------------------------------------------
@@ -63,17 +63,17 @@ struct TranslatedAxiom {
 pub struct BooleanReasoner {
     /// Internalized TBox: subclass/equivalence/disjointness axioms plus
     /// definitional equivalences.
-    tbox: Vec<TranslatedAxiom>,
+    pub(super) tbox: Vec<TranslatedAxiom>,
     /// Per-entity class assertions (positive and negative).
-    abox: HashMap<EntityId, Vec<TranslatedAxiom>>,
-    entities: Vec<EntityId>,
-    vars: HashMap<ConceptId, Var>,
-    var_names: Vec<ConceptId>,
+    pub(super) abox: HashMap<EntityId, Vec<TranslatedAxiom>>,
+    pub(super) entities: Vec<EntityId>,
+    pub(super) vars: HashMap<ConceptId, Var>,
+    pub(super) var_names: Vec<ConceptId>,
     /// Set when the module itself uses constructs outside the Boolean
     /// fragment; every query then reports Unsupported.
-    unsupported: Option<UnsupportedFeature>,
+    pub(super) unsupported: Option<UnsupportedFeature>,
     /// Computed once at construction.
-    inconsistency: Option<InconsistencyReport>,
+    pub(super) inconsistency: Option<InconsistencyReport>,
 }
 
 impl BooleanReasoner {
@@ -137,37 +137,27 @@ impl BooleanReasoner {
         };
 
         match axiom {
-            Axiom::SubclassOf { child, parent } => {
-                match (self.try_formula(child), self.try_formula(parent)) {
-                    (Some(c), Some(p)) => self.tbox.push(TranslatedAxiom {
-                        id: id.clone(),
-                        formula: Formula::implies(c, p),
-                        as_proposition: Some(Proposition::SubclassOf {
-                            child: child.clone(),
-                            parent: parent.clone(),
-                        }),
-                    }),
-                    _ => unsupported(self, "relational subclass axiom"),
-                }
-            }
+            Axiom::SubclassOf { child, parent } => match (self.try_formula(child), self.try_formula(parent)) {
+                (Some(c), Some(p)) => self.tbox.push(TranslatedAxiom {
+                    id: id.clone(),
+                    formula: Formula::implies(c, p),
+                    as_proposition: Some(Proposition::SubclassOf { child: child.clone(), parent: parent.clone() }),
+                }),
+                _ => unsupported(self, "relational subclass axiom"),
+            },
             Axiom::EquivalentClasses { classes } => {
-                let formulas: Option<Vec<Formula>> =
-                    classes.iter().map(|c| self.try_formula(c)).collect();
+                let formulas: Option<Vec<Formula>> = classes.iter().map(|c| self.try_formula(c)).collect();
                 match formulas {
                     Some(fs) if fs.len() >= 2 => {
                         // Chain of iffs is logically equivalent to full pairwise.
-                        let parts: Vec<Formula> = fs
-                            .windows(2)
-                            .map(|w| Formula::iff(w[0].clone(), w[1].clone()))
-                            .collect();
+                        let parts: Vec<Formula> =
+                            fs.windows(2).map(|w| Formula::iff(w[0].clone(), w[1].clone())).collect();
                         self.tbox.push(TranslatedAxiom {
                             id: id.clone(),
                             formula: Formula::And(parts),
-                            as_proposition: (classes.len() == 2).then(|| {
-                                Proposition::Equivalent {
-                                    left: classes[0].clone(),
-                                    right: classes[1].clone(),
-                                }
+                            as_proposition: (classes.len() == 2).then(|| Proposition::Equivalent {
+                                left: classes[0].clone(),
+                                right: classes[1].clone(),
                             }),
                         });
                     }
@@ -176,28 +166,22 @@ impl BooleanReasoner {
                 }
             }
             Axiom::DisjointClasses { classes } => {
-                let formulas: Option<Vec<Formula>> =
-                    classes.iter().map(|c| self.try_formula(c)).collect();
+                let formulas: Option<Vec<Formula>> = classes.iter().map(|c| self.try_formula(c)).collect();
                 match formulas {
                     Some(fs) => {
                         let mut parts = vec![];
                         for i in 0..fs.len() {
                             for j in (i + 1)..fs.len() {
-                                parts.push(Formula::not(Formula::And(vec![
-                                    fs[i].clone(),
-                                    fs[j].clone(),
-                                ])));
+                                parts.push(Formula::not(Formula::And(vec![fs[i].clone(), fs[j].clone()])));
                             }
                         }
                         if !parts.is_empty() {
                             self.tbox.push(TranslatedAxiom {
                                 id: id.clone(),
                                 formula: Formula::And(parts),
-                                as_proposition: (classes.len() == 2).then(|| {
-                                    Proposition::Disjoint {
-                                        left: classes[0].clone(),
-                                        right: classes[1].clone(),
-                                    }
+                                as_proposition: (classes.len() == 2).then(|| Proposition::Disjoint {
+                                    left: classes[0].clone(),
+                                    right: classes[1].clone(),
                                 }),
                             });
                         }
@@ -219,22 +203,12 @@ impl BooleanReasoner {
         }
     }
 
-    fn push_abox(
-        &mut self,
-        entity: &EntityId,
-        id: &AxiomId,
-        formula: Formula,
-        class: ConceptExpr,
-        negative: bool,
-    ) {
+    fn push_abox(&mut self, entity: &EntityId, id: &AxiomId, formula: Formula, class: ConceptExpr, negative: bool) {
         let class = if negative { ConceptExpr::not(class) } else { class };
         self.abox.entry(entity.clone()).or_default().push(TranslatedAxiom {
             id: id.clone(),
             formula,
-            as_proposition: Some(Proposition::ClassMembership {
-                entity: entity.clone(),
-                class,
-            }),
+            as_proposition: Some(Proposition::ClassMembership { entity: entity.clone(), class }),
         });
     }
 
@@ -255,12 +229,12 @@ impl BooleanReasoner {
     fn try_formula(&self, expr: &ConceptExpr) -> Option<Formula> {
         match expr {
             ConceptExpr::Named(id) => Some(Formula::Var(*self.vars.get(id)?)),
-            ConceptExpr::And(parts) => Some(Formula::And(
-                parts.iter().map(|p| self.try_formula(p)).collect::<Option<_>>()?,
-            )),
-            ConceptExpr::Or(parts) => Some(Formula::Or(
-                parts.iter().map(|p| self.try_formula(p)).collect::<Option<_>>()?,
-            )),
+            ConceptExpr::And(parts) => {
+                Some(Formula::And(parts.iter().map(|p| self.try_formula(p)).collect::<Option<_>>()?))
+            }
+            ConceptExpr::Or(parts) => {
+                Some(Formula::Or(parts.iter().map(|p| self.try_formula(p)).collect::<Option<_>>()?))
+            }
             ConceptExpr::Not(inner) => Some(Formula::not(self.try_formula(inner)?)),
             ConceptExpr::Exists { .. } | ConceptExpr::ForAll { .. } => None,
         }
@@ -268,7 +242,7 @@ impl BooleanReasoner {
 
     // -- SAT plumbing --------------------------------------------------------
 
-    fn solve(&self, axioms: &[&TranslatedAxiom], extra: &[&Formula]) -> Option<Vec<bool>> {
+    pub(super) fn solve(&self, axioms: &[&TranslatedAxiom], extra: &[&Formula]) -> Option<Vec<bool>> {
         let mut builder = CnfBuilder::new(self.var_names.len() as Var);
         for a in axioms {
             builder.assert(&a.formula);
@@ -283,11 +257,7 @@ impl BooleanReasoner {
     ///
     /// Returns `Ok(minimal core of axiom IDs)` if axioms ∧ extra is
     /// unsatisfiable, or `Err(model)` with a satisfying assignment otherwise.
-    fn refute(
-        &self,
-        axioms: &[&TranslatedAxiom],
-        extra: &[&Formula],
-    ) -> Result<Vec<AxiomId>, Vec<bool>> {
+    pub(super) fn refute(&self, axioms: &[&TranslatedAxiom], extra: &[&Formula]) -> Result<Vec<AxiomId>, Vec<bool>> {
         if let Some(model) = self.solve(axioms, extra) {
             return Err(model);
         }
@@ -308,11 +278,11 @@ impl BooleanReasoner {
         Ok(kept.into_iter().map(|a| a.id.clone()).collect())
     }
 
-    fn tbox_refs(&self) -> Vec<&TranslatedAxiom> {
+    pub(super) fn tbox_refs(&self) -> Vec<&TranslatedAxiom> {
         self.tbox.iter().collect()
     }
 
-    fn tbox_and_entity_refs(&self, entity: &EntityId) -> Vec<&TranslatedAxiom> {
+    pub(super) fn tbox_and_entity_refs(&self, entity: &EntityId) -> Vec<&TranslatedAxiom> {
         let mut refs = self.tbox_refs();
         if let Some(assertions) = self.abox.get(entity) {
             refs.extend(assertions.iter());
@@ -325,426 +295,25 @@ impl BooleanReasoner {
         if let Ok(core) = self.refute(&self.tbox_refs(), &[]) {
             return Some(InconsistencyReport {
                 conflicting_axioms: core,
-                explanation: Some(
-                    "the TBox axioms admit no possible individual at all".to_string(),
-                ),
+                explanation: Some("the TBox axioms admit no possible individual at all".to_string()),
             });
         }
         for entity in &self.entities {
             if let Ok(core) = self.refute(&self.tbox_and_entity_refs(entity), &[]) {
                 return Some(InconsistencyReport {
                     conflicting_axioms: core,
-                    explanation: Some(format!(
-                        "the assertions about entity {} cannot all hold together",
-                        entity.0
-                    )),
+                    explanation: Some(format!("the assertions about entity {} cannot all hold together", entity.0)),
                 });
             }
         }
         None
     }
 
-    // -- Query helpers -------------------------------------------------------
-
-    /// True when `entity ∈ class` holds in every model of the KB.
-    fn membership_entailed(&self, entity: &EntityId, class: &Formula) -> Option<Vec<AxiomId>> {
-        let negated = Formula::not(class.clone());
-        self.refute(&self.tbox_and_entity_refs(entity), &[&negated]).ok()
-    }
-
-    fn explanation(
-        &self,
-        conclusion: Proposition,
-        core: Vec<AxiomId>,
-        notes: Option<String>,
-    ) -> Explanation {
-        let premises: Vec<Proposition> = core
-            .iter()
-            .filter_map(|id| {
-                self.tbox
-                    .iter()
-                    .chain(self.abox.values().flatten())
-                    .find(|a| &a.id == id)
-                    .and_then(|a| a.as_proposition.clone())
-            })
-            .collect();
-        let steps = vec![InferenceStep {
-            rule: InferenceRule::BooleanRefutation,
-            premises,
-            conclusion: conclusion.clone(),
-        }];
-        Explanation { conclusion, supporting_axioms: core, steps, notes }
-    }
-
-    /// Render a countermodel as the membership pattern of one individual,
-    /// restricted to the concepts relevant to the query.
-    fn describe_model(&self, model: &[bool], relevant: &[ConceptId]) -> String {
-        let mut seen = HashSet::new();
-        let parts: Vec<String> = relevant
-            .iter()
-            .filter(|id| seen.insert((*id).clone()))
-            .filter_map(|id| {
-                let var = *self.vars.get(id)? as usize;
-                Some(if model[var] { id.0.clone() } else { format!("NOT {}", id.0) })
-            })
-            .collect();
-        format!("an individual with {{{}}} is possible", parts.join(", "))
-    }
-
-    /// Validate that a query expression stays inside the module's vocabulary
-    /// and the Boolean fragment. Returns the formula, or the verdict/outcome
-    /// to report instead.
-    fn query_formula(&self, expr: &ConceptExpr) -> Result<Formula, QueryFault> {
-        if expr.uses_relations() {
-            return Err(QueryFault::Relational);
-        }
-        let mut named = vec![];
-        expr.named_concepts(&mut named);
-        let unknown: Vec<Diagnostic> = named
-            .iter()
-            .filter(|id| !self.vars.contains_key(id))
-            .map(|id| {
-                Diagnostic::error(
-                    codes::UNRESOLVED_CONCEPT,
-                    format!("query references concept {} not declared in the module", id.0),
-                )
-            })
-            .collect();
-        if !unknown.is_empty() {
-            return Err(QueryFault::UnknownConcepts(unknown));
-        }
-        Ok(self.try_formula(expr).expect("relational case handled above"))
-    }
-
-    fn known_entity(&self, entity: &EntityId) -> Result<(), QueryFault> {
-        if self.entities.contains(entity) {
-            Ok(())
-        } else {
-            Err(QueryFault::UnknownConcepts(vec![Diagnostic::error(
-                codes::UNRESOLVED_ENTITY,
-                format!("query references entity {} not declared in the module", entity.0),
-            )]))
-        }
-    }
-
-    // -- Verdicts ------------------------------------------------------------
-
-    fn subclass_verdict(
-        &self,
-        proposition: &Proposition,
-        child: &ConceptExpr,
-        parent: &ConceptExpr,
-    ) -> Result<Verdict, QueryFault> {
-        let child_f = self.query_formula(child)?;
-        let parent_f = self.query_formula(parent)?;
-
-        let not_parent = Formula::not(parent_f.clone());
-        match self.refute(&self.tbox_refs(), &[&child_f, &not_parent]) {
-            Ok(core) => Ok(Verdict::Entailed(self.explanation(proposition.clone(), core, None))),
-            Err(model) => {
-                // A provable ABox counterexample makes the subclass claim false.
-                for entity in &self.entities {
-                    let in_child = self.membership_entailed(entity, &child_f);
-                    let out_of_parent = self.membership_entailed(entity, &not_parent);
-                    if let (Some(mut core_a), Some(core_b)) = (in_child, out_of_parent) {
-                        core_a.extend(core_b);
-                        core_a.dedup();
-                        return Ok(Verdict::Contradicted(self.explanation(
-                            proposition.clone(),
-                            core_a,
-                            Some(format!(
-                                "entity {} is provably {child} but provably NOT {parent}",
-                                entity.0
-                            )),
-                        )));
-                    }
-                }
-
-                let mut relevant = vec![];
-                child.named_concepts(&mut relevant);
-                parent.named_concepts(&mut relevant);
-                Ok(Verdict::Unknown(UnknownExplanation {
-                    proposition: proposition.clone(),
-                    missing: vec![
-                        format!(
-                            "no axioms force every {child} to be {parent}: {}",
-                            self.describe_model(&model, &relevant)
-                        ),
-                        format!(
-                            "no entity is provably {child} yet provably NOT {parent}, \
-                             so the negation is not entailed either"
-                        ),
-                    ],
-                }))
-            }
-        }
-    }
-
-    fn verdict(&self, proposition: &Proposition) -> Result<Verdict, QueryFault> {
-        match proposition {
-            Proposition::SubclassOf { child, parent } => {
-                self.subclass_verdict(proposition, child, parent)
-            }
-
-            Proposition::Equivalent { left, right } => {
-                let forward = Proposition::SubclassOf { child: left.clone(), parent: right.clone() };
-                let backward = Proposition::SubclassOf { child: right.clone(), parent: left.clone() };
-                let fwd = self.subclass_verdict(&forward, left, right)?;
-                let bwd = self.subclass_verdict(&backward, right, left)?;
-                Ok(match (fwd, bwd) {
-                    (Verdict::Entailed(a), Verdict::Entailed(b)) => {
-                        let mut core = a.supporting_axioms;
-                        core.extend(b.supporting_axioms);
-                        core.dedup();
-                        Verdict::Entailed(self.explanation(proposition.clone(), core, None))
-                    }
-                    (Verdict::Contradicted(e), _) | (_, Verdict::Contradicted(e)) => {
-                        Verdict::Contradicted(self.explanation(
-                            proposition.clone(),
-                            e.supporting_axioms,
-                            e.notes,
-                        ))
-                    }
-                    _ => Verdict::Unknown(UnknownExplanation {
-                        proposition: proposition.clone(),
-                        missing: vec![format!(
-                            "equivalence requires both {left} SUBCLASS_OF {right} and \
-                             {right} SUBCLASS_OF {left} to be entailed; at least one is open"
-                        )],
-                    }),
-                })
-            }
-
-            Proposition::Disjoint { left, right } => {
-                let left_f = self.query_formula(left)?;
-                let right_f = self.query_formula(right)?;
-                match self.refute(&self.tbox_refs(), &[&left_f, &right_f]) {
-                    Ok(core) => {
-                        Ok(Verdict::Entailed(self.explanation(proposition.clone(), core, None)))
-                    }
-                    Err(model) => {
-                        for entity in &self.entities {
-                            let in_left = self.membership_entailed(entity, &left_f);
-                            let in_right = self.membership_entailed(entity, &right_f);
-                            if let (Some(mut core_a), Some(core_b)) = (in_left, in_right) {
-                                core_a.extend(core_b);
-                                core_a.dedup();
-                                return Ok(Verdict::Contradicted(self.explanation(
-                                    proposition.clone(),
-                                    core_a,
-                                    Some(format!(
-                                        "entity {} is provably both {left} and {right}",
-                                        entity.0
-                                    )),
-                                )));
-                            }
-                        }
-                        let mut relevant = vec![];
-                        left.named_concepts(&mut relevant);
-                        right.named_concepts(&mut relevant);
-                        Ok(Verdict::Unknown(UnknownExplanation {
-                            proposition: proposition.clone(),
-                            missing: vec![
-                                format!(
-                                    "no axioms make {left} and {right} disjoint: {}",
-                                    self.describe_model(&model, &relevant)
-                                ),
-                                "no entity is provably a member of both".to_string(),
-                            ],
-                        }))
-                    }
-                }
-            }
-
-            Proposition::Satisfiable { class } => {
-                let class_f = self.query_formula(class)?;
-                match self.refute(&self.tbox_refs(), &[&class_f]) {
-                    Ok(core) => Ok(Verdict::Contradicted(self.explanation(
-                        proposition.clone(),
-                        core,
-                        Some(format!("{class} can have no instances in any model")),
-                    ))),
-                    Err(model) => {
-                        let mut relevant = vec![];
-                        class.named_concepts(&mut relevant);
-                        Ok(Verdict::Entailed(self.explanation(
-                            proposition.clone(),
-                            vec![],
-                            Some(self.describe_model(&model, &relevant)),
-                        )))
-                    }
-                }
-            }
-
-            Proposition::ClassMembership { entity, class } => {
-                self.known_entity(entity)?;
-                let class_f = self.query_formula(class)?;
-                let axioms = self.tbox_and_entity_refs(entity);
-
-                let negated = Formula::not(class_f.clone());
-                if let Ok(core) = self.refute(&axioms, &[&negated]) {
-                    return Ok(Verdict::Entailed(self.explanation(
-                        proposition.clone(),
-                        core,
-                        None,
-                    )));
-                }
-                match self.refute(&axioms, &[&class_f]) {
-                    Ok(core) => Ok(Verdict::Contradicted(self.explanation(
-                        proposition.clone(),
-                        core,
-                        None,
-                    ))),
-                    Err(_) => Ok(Verdict::Unknown(UnknownExplanation {
-                        proposition: proposition.clone(),
-                        missing: vec![format!(
-                            "the assertions about {} neither force nor exclude {class}; \
-                             both remain possible under open-world semantics",
-                            entity.0
-                        )],
-                    })),
-                }
-            }
-
-            Proposition::Consistent => Ok(Verdict::Entailed(Explanation {
-                conclusion: proposition.clone(),
-                supporting_axioms: vec![],
-                steps: vec![],
-                notes: Some(
-                    "the TBox admits at least one individual and every entity's \
-                     assertions are jointly satisfiable"
-                        .to_string(),
-                ),
-            })),
-
-            Proposition::RelationHolds { .. } => Err(QueryFault::Relational),
-        }
-    }
 }
 
-enum QueryFault {
+pub(super) enum QueryFault {
     Relational,
     UnknownConcepts(Vec<Diagnostic>),
 }
 
-impl Reasoner for BooleanReasoner {
-    fn query(&self, proposition: &Proposition) -> ReasoningOutcome<Verdict> {
-        if let Some(u) = &self.unsupported {
-            return ReasoningOutcome::Unsupported(u.clone());
-        }
-        if let Some(report) = &self.inconsistency {
-            return ReasoningOutcome::Complete(Verdict::Inconsistent(report.clone()));
-        }
-        match self.verdict(proposition) {
-            Ok(v) => ReasoningOutcome::Complete(v),
-            Err(QueryFault::Relational) => ReasoningOutcome::Unsupported(UnsupportedFeature {
-                feature: format!("relational proposition: {proposition}"),
-                advice: Some("requires the Stage 3 ALC reasoner".to_string()),
-            }),
-            Err(QueryFault::UnknownConcepts(diags)) => {
-                ReasoningOutcome::Complete(Verdict::IllTyped(diags))
-            }
-        }
-    }
 
-    fn classify(&self, concept: &ConceptExpr) -> ReasoningOutcome<ClassificationResult> {
-        if let Some(u) = &self.unsupported {
-            return ReasoningOutcome::Unsupported(u.clone());
-        }
-        let expr_f = match self.query_formula(concept) {
-            Ok(f) => f,
-            Err(QueryFault::Relational) => {
-                return ReasoningOutcome::Unsupported(UnsupportedFeature {
-                    feature: "classification of relational expression".to_string(),
-                    advice: Some("requires the Stage 3 ALC reasoner".to_string()),
-                });
-            }
-            Err(QueryFault::UnknownConcepts(diags)) => {
-                return ReasoningOutcome::InternalError(format!(
-                    "cannot classify: {}",
-                    diags.iter().map(|d| d.message.as_str()).collect::<Vec<_>>().join("; ")
-                ));
-            }
-        };
-
-        let tbox = self.tbox_refs();
-        let entails = |sub: &Formula, sup: &Formula| -> bool {
-            let negated = Formula::not(sup.clone());
-            self.solve(&tbox, &[sub, &negated]).is_none()
-        };
-
-        let self_id = match concept {
-            ConceptExpr::Named(id) => Some(id.clone()),
-            _ => None,
-        };
-
-        let mut supers = vec![];
-        let mut subs = vec![];
-        let mut equivalents = vec![];
-        for id in &self.var_names {
-            if Some(id) == self_id.as_ref() {
-                continue;
-            }
-            let named_f = Formula::Var(self.vars[id]);
-            let up = entails(&expr_f, &named_f);
-            let down = entails(&named_f, &expr_f);
-            match (up, down) {
-                (true, true) => equivalents.push(id.clone()),
-                (true, false) => supers.push(id.clone()),
-                (false, true) => subs.push(id.clone()),
-                (false, false) => {}
-            }
-        }
-
-        // Reduce to direct neighbours: a superclass is direct when no other
-        // strict superclass sits between it and the queried concept.
-        let strictly_between = |a: &ConceptId, b: &ConceptId| -> bool {
-            let a_f = Formula::Var(self.vars[a]);
-            let b_f = Formula::Var(self.vars[b]);
-            entails(&a_f, &b_f) && !entails(&b_f, &a_f)
-        };
-        let direct_superclasses = supers
-            .iter()
-            .filter(|n| !supers.iter().any(|m| m != *n && strictly_between(m, n)))
-            .cloned()
-            .collect();
-        let direct_subclasses = subs
-            .iter()
-            .filter(|n| !subs.iter().any(|m| m != *n && strictly_between(n, m)))
-            .cloned()
-            .collect();
-
-        ReasoningOutcome::Complete(ClassificationResult {
-            direct_superclasses,
-            direct_subclasses,
-            equivalent_classes: equivalents,
-        })
-    }
-
-    fn is_consistent(&self) -> ReasoningOutcome<bool> {
-        if let Some(u) = &self.unsupported {
-            return ReasoningOutcome::Unsupported(u.clone());
-        }
-        ReasoningOutcome::Complete(self.inconsistency.is_none())
-    }
-
-    fn is_satisfiable(&self, concept: &ConceptExpr) -> ReasoningOutcome<bool> {
-        if let Some(u) = &self.unsupported {
-            return ReasoningOutcome::Unsupported(u.clone());
-        }
-        match self.query_formula(concept) {
-            Ok(f) => ReasoningOutcome::Complete(self.solve(&self.tbox_refs(), &[&f]).is_some()),
-            Err(QueryFault::Relational) => ReasoningOutcome::Unsupported(UnsupportedFeature {
-                feature: "satisfiability of relational expression".to_string(),
-                advice: Some("requires the Stage 3 ALC reasoner".to_string()),
-            }),
-            Err(QueryFault::UnknownConcepts(_)) => {
-                // An undeclared concept is unconstrained, hence trivially
-                // satisfiable, but answering would hide the typo. Report it.
-                ReasoningOutcome::InternalError(
-                    "expression references concepts not declared in the module".to_string(),
-                )
-            }
-        }
-    }
-}

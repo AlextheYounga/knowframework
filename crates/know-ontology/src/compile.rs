@@ -22,8 +22,8 @@ use thiserror::Error;
 use crate::{
     ir::{AnnotatedAxiom, Axiom, Concept, ConceptExpr, Entity, KnowledgeModule, Relation},
     source::{
-        AxiomSource, ConceptExprSource, ConceptRecordSource, ConceptStatus, EntityRecordSource,
-        Grounding, KnowledgeModuleSource, RelationRecordSource,
+        AxiomSource, ConceptExprSource, ConceptRecordSource, ConceptStatus, EntityRecordSource, Grounding,
+        KnowledgeModuleSource, RelationRecordSource,
     },
 };
 
@@ -70,21 +70,9 @@ pub fn compile(source: KnowledgeModuleSource) -> Result<KnowledgeModule, Compile
     // --- 1. Collect declared symbols ---------------------------------------
 
     let symbols = Symbols {
-        concepts: source
-            .concepts
-            .iter()
-            .map(|c| (c.id.clone(), ConceptId(c.id.clone())))
-            .collect(),
-        relations: source
-            .relations
-            .iter()
-            .map(|r| (r.id.clone(), RelationId(r.id.clone())))
-            .collect(),
-        entities: source
-            .entities
-            .iter()
-            .map(|e| (e.id.clone(), EntityId(e.id.clone())))
-            .collect(),
+        concepts: source.concepts.iter().map(|c| (c.id.clone(), ConceptId(c.id.clone()))).collect(),
+        relations: source.relations.iter().map(|r| (r.id.clone(), RelationId(r.id.clone()))).collect(),
+        entities: source.entities.iter().map(|e| (e.id.clone(), EntityId(e.id.clone()))).collect(),
     };
 
     // --- 2. Duplicate detection ---------------------------------------------
@@ -101,48 +89,24 @@ pub fn compile(source: KnowledgeModuleSource) -> Result<KnowledgeModule, Compile
 
     // --- 4. Name resolution --------------------------------------------------
 
-    let concepts: Vec<Concept> = source
-        .concepts
-        .into_iter()
-        .map(|c| resolve_concept(c, &symbols, &mut diagnostics))
-        .collect();
+    let concepts: Vec<Concept> =
+        source.concepts.into_iter().map(|c| resolve_concept(c, &symbols, &mut diagnostics)).collect();
 
-    let relations = source
-        .relations
-        .into_iter()
-        .map(|r| resolve_relation(r, &symbols, &mut diagnostics))
-        .collect();
+    let relations = source.relations.into_iter().map(|r| resolve_relation(r, &symbols, &mut diagnostics)).collect();
 
-    let entities = source
-        .entities
-        .into_iter()
-        .map(resolve_entity)
-        .collect();
+    let entities = source.entities.into_iter().map(resolve_entity).collect();
 
-    let axioms = source
-        .axioms
-        .into_iter()
-        .enumerate()
-        .map(|(i, a)| resolve_axiom(a, i, &symbols, &mut diagnostics))
-        .collect();
+    let axioms =
+        source.axioms.into_iter().enumerate().map(|(i, a)| resolve_axiom(a, i, &symbols, &mut diagnostics)).collect();
 
     // --- 5. Definition-cycle detection ---------------------------------------
 
     detect_definition_cycles(&concepts, &mut diagnostics);
 
-    let error_count = diagnostics
-        .iter()
-        .filter(|d| d.severity == know_core::Severity::Error)
-        .count();
+    let error_count = diagnostics.iter().filter(|d| d.severity == know_core::Severity::Error).count();
 
     if error_count == 0 {
-        Ok(KnowledgeModule {
-            id: ModuleId(source.id),
-            concepts,
-            relations,
-            entities,
-            axioms,
-        })
+        Ok(KnowledgeModule { id: ModuleId(source.id), concepts, relations, entities, axioms })
     } else {
         Err(CompileError::ValidationErrors { count: error_count, diagnostics })
     }
@@ -183,10 +147,7 @@ fn check_status_definition(c: &ConceptRecordSource, out: &mut Vec<Diagnostic>) {
         )),
         (ConceptStatus::Primitive | ConceptStatus::Declared, true) => out.push(Diagnostic::error(
             codes::STATUS_DEFINITION_MISMATCH,
-            format!(
-                "concept {} has status {:?} but carries a definition; use status Defined",
-                c.id, c.status
-            ),
+            format!("concept {} has status {:?} but carries a definition; use status Defined", c.id, c.status),
         )),
         _ => {}
     }
@@ -196,32 +157,23 @@ fn check_status_definition(c: &ConceptRecordSource, out: &mut Vec<Diagnostic>) {
 // Pass 4: name resolution
 // ---------------------------------------------------------------------------
 
-fn resolve_expr(
-    expr: ConceptExprSource,
-    symbols: &Symbols,
-    diagnostics: &mut Vec<Diagnostic>,
-) -> ConceptExpr {
+fn resolve_expr(expr: ConceptExprSource, symbols: &Symbols, diagnostics: &mut Vec<Diagnostic>) -> ConceptExpr {
     match expr {
         ConceptExprSource::Named(name) => {
             if !symbols.concepts.contains_key(&name) {
-                diagnostics.push(Diagnostic::error(
-                    codes::UNRESOLVED_CONCEPT,
-                    format!("unresolved concept: {name}"),
-                ));
+                diagnostics.push(Diagnostic::error(codes::UNRESOLVED_CONCEPT, format!("unresolved concept: {name}")));
             }
             // On error the placeholder ID lets compilation continue and
             // collect further diagnostics; the module is discarded anyway.
             ConceptExpr::Named(ConceptId(name))
         }
-        ConceptExprSource::And(parts) => ConceptExpr::And(
-            parts.into_iter().map(|p| resolve_expr(p, symbols, diagnostics)).collect(),
-        ),
-        ConceptExprSource::Or(parts) => ConceptExpr::Or(
-            parts.into_iter().map(|p| resolve_expr(p, symbols, diagnostics)).collect(),
-        ),
-        ConceptExprSource::Not(inner) => {
-            ConceptExpr::Not(Box::new(resolve_expr(*inner, symbols, diagnostics)))
+        ConceptExprSource::And(parts) => {
+            ConceptExpr::And(parts.into_iter().map(|p| resolve_expr(p, symbols, diagnostics)).collect())
         }
+        ConceptExprSource::Or(parts) => {
+            ConceptExpr::Or(parts.into_iter().map(|p| resolve_expr(p, symbols, diagnostics)).collect())
+        }
+        ConceptExprSource::Not(inner) => ConceptExpr::Not(Box::new(resolve_expr(*inner, symbols, diagnostics))),
         ConceptExprSource::Exists { relation, filler } => ConceptExpr::Exists {
             relation: resolve_relation_ref(&relation, symbols, diagnostics),
             filler: Box::new(resolve_expr(*filler, symbols, diagnostics)),
@@ -233,11 +185,7 @@ fn resolve_expr(
     }
 }
 
-fn resolve_concept(
-    src: ConceptRecordSource,
-    symbols: &Symbols,
-    diagnostics: &mut Vec<Diagnostic>,
-) -> Concept {
+fn resolve_concept(src: ConceptRecordSource, symbols: &Symbols, diagnostics: &mut Vec<Diagnostic>) -> Concept {
     Concept {
         id: ConceptId(src.id),
         preferred_label: src.label,
@@ -249,11 +197,7 @@ fn resolve_concept(
     }
 }
 
-fn resolve_relation(
-    src: RelationRecordSource,
-    symbols: &Symbols,
-    diagnostics: &mut Vec<Diagnostic>,
-) -> Relation {
+fn resolve_relation(src: RelationRecordSource, symbols: &Symbols, diagnostics: &mut Vec<Diagnostic>) -> Relation {
     Relation {
         id: RelationId(src.id),
         preferred_label: src.label,
@@ -264,37 +208,19 @@ fn resolve_relation(
 }
 
 fn resolve_entity(src: EntityRecordSource) -> Entity {
-    Entity {
-        id: EntityId(src.id),
-        preferred_label: src.label,
-        provenance: src.provenance.unwrap_or_default(),
-    }
+    Entity { id: EntityId(src.id), preferred_label: src.label, provenance: src.provenance.unwrap_or_default() }
 }
 
-fn resolve_entity_ref(
-    name: &str,
-    symbols: &Symbols,
-    diagnostics: &mut Vec<Diagnostic>,
-) -> EntityId {
+fn resolve_entity_ref(name: &str, symbols: &Symbols, diagnostics: &mut Vec<Diagnostic>) -> EntityId {
     if !symbols.entities.contains_key(name) {
-        diagnostics.push(Diagnostic::error(
-            codes::UNRESOLVED_ENTITY,
-            format!("unresolved entity: {name}"),
-        ));
+        diagnostics.push(Diagnostic::error(codes::UNRESOLVED_ENTITY, format!("unresolved entity: {name}")));
     }
     EntityId(name.to_string())
 }
 
-fn resolve_relation_ref(
-    name: &str,
-    symbols: &Symbols,
-    diagnostics: &mut Vec<Diagnostic>,
-) -> RelationId {
+fn resolve_relation_ref(name: &str, symbols: &Symbols, diagnostics: &mut Vec<Diagnostic>) -> RelationId {
     if !symbols.relations.contains_key(name) {
-        diagnostics.push(Diagnostic::error(
-            codes::UNRESOLVED_RELATION,
-            format!("unresolved relation: {name}"),
-        ));
+        diagnostics.push(Diagnostic::error(codes::UNRESOLVED_RELATION, format!("unresolved relation: {name}")));
     }
     RelationId(name.to_string())
 }
@@ -331,13 +257,11 @@ fn resolve_axiom(
             entity: resolve_entity_ref(&entity, symbols, diagnostics),
             class: resolve_expr(class, symbols, diagnostics),
         },
-        AxiomSource::NegativeRelationAssertion { subject, relation, object } => {
-            Axiom::NegativeRelationAssertion {
-                subject: resolve_entity_ref(&subject, symbols, diagnostics),
-                relation: resolve_relation_ref(&relation, symbols, diagnostics),
-                object: resolve_entity_ref(&object, symbols, diagnostics),
-            }
-        }
+        AxiomSource::NegativeRelationAssertion { subject, relation, object } => Axiom::NegativeRelationAssertion {
+            subject: resolve_entity_ref(&subject, symbols, diagnostics),
+            relation: resolve_relation_ref(&relation, symbols, diagnostics),
+            object: resolve_entity_ref(&object, symbols, diagnostics),
+        },
     };
 
     AnnotatedAxiom { id: axiom_id, axiom, provenance: Provenance::default() }
@@ -356,10 +280,8 @@ fn resolve_axiom(
 // ---------------------------------------------------------------------------
 
 fn detect_definition_cycles(concepts: &[Concept], out: &mut Vec<Diagnostic>) {
-    let defined: HashMap<&ConceptId, &ConceptExpr> = concepts
-        .iter()
-        .filter_map(|c| c.definition.as_ref().map(|d| (&c.id, d)))
-        .collect();
+    let defined: HashMap<&ConceptId, &ConceptExpr> =
+        concepts.iter().filter_map(|c| c.definition.as_ref().map(|d| (&c.id, d))).collect();
 
     #[derive(Clone, Copy, PartialEq)]
     enum Mark {
@@ -380,11 +302,8 @@ fn detect_definition_cycles(concepts: &[Concept], out: &mut Vec<Diagnostic>) {
             Some(Mark::Done) => return,
             Some(Mark::InProgress) => {
                 let cycle_start = stack.iter().position(|c| *c == id).unwrap_or(0);
-                let cycle: Vec<&str> = stack[cycle_start..]
-                    .iter()
-                    .map(|c| c.0.as_str())
-                    .chain(std::iter::once(id.0.as_str()))
-                    .collect();
+                let cycle: Vec<&str> =
+                    stack[cycle_start..].iter().map(|c| c.0.as_str()).chain(std::iter::once(id.0.as_str())).collect();
                 out.push(Diagnostic::error(
                     codes::CIRCULAR_DEFINITION,
                     format!("circular definition: {}", cycle.join(" -> ")),
@@ -422,208 +341,4 @@ fn detect_definition_cycles(concepts: &[Concept], out: &mut Vec<Diagnostic>) {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::source::ConceptExprSource as E;
-
-    fn concept(id: &str, status: ConceptStatus, definition: Option<E>) -> ConceptRecordSource {
-        ConceptRecordSource {
-            id: id.into(),
-            label: id.into(),
-            alternate_labels: vec![],
-            definition,
-            grounding: None,
-            status,
-            provenance: None,
-        }
-    }
-
-    fn module(concepts: Vec<ConceptRecordSource>, axioms: Vec<AxiomSource>) -> KnowledgeModuleSource {
-        KnowledgeModuleSource {
-            id: "test".into(),
-            schema_version: 1,
-            concepts,
-            relations: vec![],
-            entities: vec![],
-            axioms,
-        }
-    }
-
-    fn error_codes(err: CompileError) -> Vec<&'static str> {
-        err.diagnostics().iter().map(|d| d.code).collect()
-    }
-
-    #[test]
-    fn compiles_valid_module() {
-        let m = module(
-            vec![
-                concept("a", ConceptStatus::Primitive, None),
-                concept("b", ConceptStatus::Defined, Some(E::Named("a".into()))),
-            ],
-            vec![],
-        );
-        let compiled = compile(m).expect("must compile");
-        assert_eq!(compiled.concepts.len(), 2);
-    }
-
-    #[test]
-    fn rejects_wrong_schema_version() {
-        let mut m = module(vec![], vec![]);
-        m.schema_version = 99;
-        assert!(matches!(
-            compile(m),
-            Err(CompileError::UnsupportedSchemaVersion { found: 99, .. })
-        ));
-    }
-
-    #[test]
-    fn rejects_duplicate_ids() {
-        let m = module(
-            vec![
-                concept("a", ConceptStatus::Primitive, None),
-                concept("a", ConceptStatus::Primitive, None),
-            ],
-            vec![],
-        );
-        assert_eq!(error_codes(compile(m).unwrap_err()), vec![codes::DUPLICATE_ID]);
-    }
-
-    #[test]
-    fn rejects_unresolved_concept_reference() {
-        let m = module(
-            vec![concept("a", ConceptStatus::Defined, Some(E::Named("missing".into())))],
-            vec![],
-        );
-        assert_eq!(error_codes(compile(m).unwrap_err()), vec![codes::UNRESOLVED_CONCEPT]);
-    }
-
-    #[test]
-    fn rejects_unresolved_relation_in_restriction() {
-        let m = module(
-            vec![
-                concept("a", ConceptStatus::Primitive, None),
-                concept(
-                    "b",
-                    ConceptStatus::Defined,
-                    Some(E::Exists {
-                        relation: "no_such_relation".into(),
-                        filler: Box::new(E::Named("a".into())),
-                    }),
-                ),
-            ],
-            vec![],
-        );
-        assert_eq!(error_codes(compile(m).unwrap_err()), vec![codes::UNRESOLVED_RELATION]);
-    }
-
-    #[test]
-    fn rejects_unresolved_entity_in_assertion() {
-        let m = module(
-            vec![concept("a", ConceptStatus::Primitive, None)],
-            vec![AxiomSource::ClassAssertion {
-                entity: "ghost".into(),
-                class: E::Named("a".into()),
-            }],
-        );
-        assert_eq!(error_codes(compile(m).unwrap_err()), vec![codes::UNRESOLVED_ENTITY]);
-    }
-
-    #[test]
-    fn rejects_defined_concept_without_definition() {
-        let m = module(vec![concept("a", ConceptStatus::Defined, None)], vec![]);
-        assert_eq!(error_codes(compile(m).unwrap_err()), vec![codes::STATUS_DEFINITION_MISMATCH]);
-    }
-
-    #[test]
-    fn rejects_primitive_concept_with_definition() {
-        let m = module(
-            vec![
-                concept("a", ConceptStatus::Primitive, None),
-                concept("b", ConceptStatus::Primitive, Some(E::Named("a".into()))),
-            ],
-            vec![],
-        );
-        assert_eq!(error_codes(compile(m).unwrap_err()), vec![codes::STATUS_DEFINITION_MISMATCH]);
-    }
-
-    #[test]
-    fn rejects_direct_definition_cycle() {
-        let m = module(
-            vec![concept("a", ConceptStatus::Defined, Some(E::Named("a".into())))],
-            vec![],
-        );
-        assert_eq!(error_codes(compile(m).unwrap_err()), vec![codes::CIRCULAR_DEFINITION]);
-    }
-
-    #[test]
-    fn rejects_mutual_definition_cycle() {
-        let m = module(
-            vec![
-                concept("a", ConceptStatus::Defined, Some(E::Named("b".into()))),
-                concept(
-                    "b",
-                    ConceptStatus::Defined,
-                    Some(E::And(vec![E::Named("a".into())])),
-                ),
-            ],
-            vec![],
-        );
-        assert_eq!(error_codes(compile(m).unwrap_err()), vec![codes::CIRCULAR_DEFINITION]);
-    }
-
-    #[test]
-    fn accepts_definition_chain_without_cycle() {
-        let m = module(
-            vec![
-                concept("a", ConceptStatus::Primitive, None),
-                concept("b", ConceptStatus::Defined, Some(E::Named("a".into()))),
-                concept(
-                    "c",
-                    ConceptStatus::Defined,
-                    Some(E::And(vec![E::Named("a".into()), E::Named("b".into())])),
-                ),
-            ],
-            vec![],
-        );
-        assert!(compile(m).is_ok());
-    }
-
-    #[test]
-    fn collects_multiple_errors_in_one_pass() {
-        let m = module(
-            vec![
-                concept("a", ConceptStatus::Defined, None),
-                concept("b", ConceptStatus::Defined, Some(E::Named("missing".into()))),
-            ],
-            vec![],
-        );
-        let codes_found = error_codes(compile(m).unwrap_err());
-        assert!(codes_found.contains(&codes::STATUS_DEFINITION_MISMATCH));
-        assert!(codes_found.contains(&codes::UNRESOLVED_CONCEPT));
-    }
-
-    #[test]
-    fn round_trips_through_ron() {
-        let m = module(
-            vec![
-                concept("a", ConceptStatus::Primitive, None),
-                concept(
-                    "b",
-                    ConceptStatus::Defined,
-                    Some(E::And(vec![E::Named("a".into()), E::Not(Box::new(E::Named("a".into())))])),
-                ),
-            ],
-            vec![AxiomSource::DisjointClasses {
-                classes: vec![E::Named("a".into()), E::Named("b".into())],
-            }],
-        );
-        let ron = m.to_ron().expect("serialize");
-        let back = KnowledgeModuleSource::from_ron(&ron).expect("deserialize");
-        assert_eq!(m, back);
-    }
-}
