@@ -1,5 +1,5 @@
 [package]
-name = "know-lint-tests"
+name = "cleancode"
 version.workspace = true
 edition.workspace = true
 

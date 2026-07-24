@@ -8,7 +8,7 @@ members = [
     "crates/know-owl",
     "crates/know-cli",
     "crates/know-test-support",
-    "crates/know-lint-tests",
+    "tests/cleancode",
 ]
 resolver = "2"
 
