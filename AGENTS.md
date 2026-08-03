@@ -54,3 +54,6 @@ Prefer code that reads as a vocabulary of the system, not a sequence of implemen
 And finally, please update any related documentation **if necessary, use your best judgement**:
 - `docs/PROJECT.md`
 - `README.md`
+
+Knowledge corpus changes under `knowledge/` must follow the contribution
+guides in `.agents/README.md`.

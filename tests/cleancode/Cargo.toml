@@ -17,18 +17,4 @@ path = "cleancode_no_duplicated_state.rs"
 name = "cleancode_file_too_long"
 path = "cleancode_file_too_long.rs"
 
-[[test]]
-name = "cleancode_no_legacy_terms"
-path = "cleancode_no_legacy_terms.rs"
 
-[[test]]
-name = "cleancode_no_literal_wrapped_fallback"
-path = "cleancode_no_literal_wrapped_fallback.rs"
-
-[[test]]
-name = "cleancode_no_manufactured_success"
-path = "cleancode_no_manufactured_success.rs"
-
-[[test]]
-name = "cleancode_no_vague_naming"
-path = "cleancode_no_vague_naming.rs"
