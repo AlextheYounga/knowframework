@@ -10,6 +10,7 @@ workspace = true
 know-core     = { workspace = true }
 know-ontology = { workspace = true }
 know-reasoner = { workspace = true }
+know-owl      = { workspace = true }
 know-lexicon  = { workspace = true }
 serde         = { workspace = true }
 ron           = { workspace = true }

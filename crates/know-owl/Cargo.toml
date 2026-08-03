@@ -9,4 +9,9 @@ workspace = true
 [dependencies]
 know-core     = { workspace = true }
 know-ontology = { workspace = true }
-owl-dl-core = "0.3.0"
+know-reasoner = { workspace = true }
+owl-dl-reasoner = "0.3.0"
+horned-owl = "1.4"
+
+[dev-dependencies]
+fixtures = { workspace = true }

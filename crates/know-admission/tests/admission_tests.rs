@@ -1,10 +1,10 @@
-use know_core::{codes, Diagnostic, Provenance};
-use know_admission::{
-    AdmissionDecision, ExpectedVerdict, GeneratorIdentity, GeneratorKind, KnowledgeProposal, Pipeline,
-    RegressionCheck,
-};
-use know_ontology::{AxiomSource, ConceptExprSource, ConceptRecordSource, ConceptStatus};
 use fixtures::geometry::geometry_source;
+use know_admission::{
+    AdmissionDecision, ExpectedVerdict, GeneratorIdentity, GeneratorKind, KnowledgeProposal, Pipeline, RegressionCheck,
+    RegressionCheckSource, RegressionManifest, RegressionPropositionSource,
+};
+use know_core::{Diagnostic, Provenance, codes};
+use know_ontology::{AxiomSource, ConceptExprSource, ConceptRecordSource, ConceptStatus};
 
 fn generator() -> GeneratorIdentity {
     GeneratorIdentity { kind: GeneratorKind::Llm, model_id: Some("test-model".into()), run_id: "run-1".into() }
@@ -84,11 +84,7 @@ fn duplicate_concept_id_is_rejected() {
     p.proposed_concepts.push(concept("geometry::square", ConceptStatus::Declared, None));
 
     let record = pipeline().admit(p);
-    assert!(
-        decision_errors(&record.decision).iter().any(|d| d.code == codes::DUPLICATE_ID),
-        "{:?}",
-        record.decision
-    );
+    assert!(decision_errors(&record.decision).iter().any(|d| d.code == codes::DUPLICATE_ID), "{:?}", record.decision);
 }
 
 #[test]
@@ -109,11 +105,7 @@ fn inconsistent_proposal_conflicts_with_existing_knowledge() {
     });
 
     let record = pipeline().admit(p);
-    assert!(
-        matches!(record.decision, AdmissionDecision::ConflictsWithExistingKnowledge(_)),
-        "{:?}",
-        record.decision
-    );
+    assert!(matches!(record.decision, AdmissionDecision::ConflictsWithExistingKnowledge(_)), "{:?}", record.decision);
 }
 
 #[test]
@@ -152,9 +144,7 @@ fn collapsing_definition_is_accepted_with_warning() {
     let AdmissionDecision::AcceptedWithWarnings(warnings) = &record.decision else {
         panic!("expected AcceptedWithWarnings, got {:?}", record.decision);
     };
-    assert!(
-        warnings.iter().any(|d| { d.code == codes::CONCEPT_COLLAPSE && d.message.contains("geometry::square") })
-    );
+    assert!(warnings.iter().any(|d| { d.code == codes::CONCEPT_COLLAPSE && d.message.contains("geometry::square") }));
 }
 
 #[test]
@@ -211,4 +201,37 @@ fn lexical_binding_to_missing_concept_is_rejected() {
         "{:?}",
         record.decision
     );
+}
+
+#[test]
+fn manifest_regression_is_loaded_and_enforced() {
+    let manifest = RegressionManifest {
+        checks: vec![RegressionCheckSource {
+            description: "square remains satisfiable".into(),
+            proposition: RegressionPropositionSource::Satisfiable {
+                class: ConceptExprSource::Named("geometry::square".into()),
+            },
+            expected: ExpectedVerdict::Entailed,
+        }],
+    };
+    let mut p = proposal("bad-disjointness");
+    p.proposed_axioms.push(AxiomSource::DisjointClasses {
+        classes: vec![
+            ConceptExprSource::Named("geometry::rectangle".into()),
+            ConceptExprSource::Named("geometry::rhombus".into()),
+        ],
+    });
+
+    let record = Pipeline::new(geometry_source()).with_regression_manifest(manifest).admit(p);
+    assert!(decision_errors(&record.decision).iter().any(|diagnostic| diagnostic.code == codes::ADMISSION_REGRESSION));
+}
+
+#[test]
+fn apply_returns_a_deterministic_merged_source_only_for_clean_acceptance() {
+    let mut p = proposal("pentagon");
+    p.proposed_concepts.push(concept("geometry::pentagon", ConceptStatus::Declared, None));
+    let pipeline = pipeline();
+
+    let merged = pipeline.apply(p).expect("clean proposal applies");
+    assert_eq!(merged.concepts.last().map(|concept| concept.id.as_str()), Some("geometry::pentagon"));
 }

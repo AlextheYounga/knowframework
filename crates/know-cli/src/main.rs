@@ -2,10 +2,10 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 use clap::{Parser, Subcommand};
-use know_admission::{KnowledgeProposal, Pipeline};
+use know_admission::{AdmissionDecision, KnowledgeProposal, Pipeline, RegressionManifest};
 use know_lexicon::{ContextResolver, ResolutionContext, ResolutionResult, Resolver};
 use know_ontology::{ConceptExpr, ConceptExprSource, KnowledgeModule, KnowledgeModuleSource, compile};
-use know_owl::export_owl_functional;
+use know_owl::{RustdlReasoner, export_owl_functional};
 use know_reasoner::{BooleanReasoner, Explanation, Proposition, Reasoner, ReasoningOutcome, Verdict};
 
 #[derive(Parser)]
@@ -58,9 +58,16 @@ enum Command {
     /// Run a knowledge proposal (RON `KnowledgeProposal`) through the
     /// admission pipeline against a base module.
     ///
-    /// TODO: load regression checks from a per-module manifest once their
-    /// storage format is specified; currently only the always-on stages run.
-    Admit { module: PathBuf, proposal: PathBuf },
+    Admit {
+        module: PathBuf,
+        proposal: PathBuf,
+        /// RON regression manifest evaluated before a proposal can be applied.
+        #[arg(long)]
+        regressions: Option<PathBuf>,
+        /// Atomically replace the base module after a clean admission decision.
+        #[arg(long)]
+        apply: bool,
+    },
 
     /// Export a module to OWL 2 Functional Syntax.
     ExportOwl { module: PathBuf },
@@ -104,14 +111,14 @@ fn run(command: Command) -> Result<(), String> {
         Command::Reason { module, query } => {
             let module = load_and_compile(&module)?;
             let proposition = parse_query(&query)?;
-            let reasoner = BooleanReasoner::new(&module);
+            let reasoner = RustdlReasoner::new(&module)?;
             print_verdict(reasoner.query(&proposition), false)
         }
 
         Command::Explain { module, query } => {
             let module = load_and_compile(&module)?;
             let proposition = parse_query(&query)?;
-            let reasoner = BooleanReasoner::new(&module);
+            let reasoner = RustdlReasoner::new(&module)?;
             print_verdict(reasoner.query(&proposition), true)
         }
 
@@ -155,10 +162,17 @@ fn run(command: Command) -> Result<(), String> {
             }
         }
 
-        Command::Admit { module, proposal } => {
-            let base = load_module(&module)?;
+        Command::Admit { module, proposal, regressions, apply } => {
+            let base_text = read(&module)?;
+            let base = KnowledgeModuleSource::from_ron(&base_text).map_err(|e| format!("{}: {e}", module.display()))?;
             let proposal = KnowledgeProposal::from_ron(&read(&proposal)?).map_err(|e| format!("proposal: {e}"))?;
-            let record = Pipeline::new(base).admit(proposal);
+            let mut pipeline = Pipeline::new(base);
+            if let Some(path) = regressions {
+                let manifest =
+                    RegressionManifest::from_ron(&read(&path)?).map_err(|e| format!("{}: {e}", path.display()))?;
+                pipeline = pipeline.with_regression_manifest(manifest);
+            }
+            let record = pipeline.admit(proposal.clone());
 
             for result in &record.validation_results {
                 let status = if result.passed { "pass" } else { "FAIL" };
@@ -168,6 +182,15 @@ fn run(command: Command) -> Result<(), String> {
                 }
             }
             println!("decision: {}", describe_decision(&record.decision));
+            if apply {
+                if !matches!(record.decision, AdmissionDecision::Accepted) {
+                    return Err("proposal was not cleanly accepted; refusing to apply it".to_string());
+                }
+                let merged = pipeline.merged_source(&proposal);
+                let canonical = merged.to_ron().map_err(|error| error.to_string())?;
+                atomic_replace(&module, &base_text, canonical.as_bytes())?;
+                println!("applied: {}", module.display());
+            }
             Ok(())
         }
 
@@ -351,6 +374,20 @@ fn describe_decision(decision: &know_admission::AdmissionDecision) -> String {
 
 fn read(path: &PathBuf) -> Result<String, String> {
     std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))
+}
+
+fn atomic_replace(path: &PathBuf, expected: &str, replacement: &[u8]) -> Result<(), String> {
+    let current = read(path)?;
+    if current != expected {
+        return Err(format!("{} changed during admission; refusing to overwrite it", path.display()));
+    }
+    let file_name = path.file_name().ok_or_else(|| format!("{} has no file name", path.display()))?;
+    let temporary = path.with_file_name(format!(".{}.{}.tmp", file_name.to_string_lossy(), std::process::id()));
+    std::fs::write(&temporary, replacement).map_err(|error| format!("{}: {error}", temporary.display()))?;
+    std::fs::rename(&temporary, path).map_err(|error| {
+        let _ = std::fs::remove_file(&temporary);
+        format!("{}: {error}", path.display())
+    })
 }
 
 fn load_module(path: &PathBuf) -> Result<KnowledgeModuleSource, String> {

@@ -1,0 +1,29 @@
+// Semantic invariants that every accepted geometry proposal must preserve.
+RegressionManifest(
+    checks: [
+        RegressionCheckSource(
+            description: "square remains a polygon",
+            proposition: SubclassOf(
+                child: Named("geometry::square"),
+                parent: Named("geometry::polygon"),
+            ),
+            expected: Entailed,
+        ),
+        RegressionCheckSource(
+            description: "polygon and circle remain disjoint",
+            proposition: Disjoint(
+                left: Named("geometry::polygon"),
+                right: Named("geometry::circle"),
+            ),
+            expected: Entailed,
+        ),
+        RegressionCheckSource(
+            description: "red squares remain open with respect to size",
+            proposition: SubclassOf(
+                child: And([Named("geometry::red"), Named("geometry::square")]),
+                parent: Named("geometry::large"),
+            ),
+            expected: Unknown,
+        ),
+    ],
+)

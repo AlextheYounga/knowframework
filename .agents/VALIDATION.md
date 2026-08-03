@@ -174,3 +174,19 @@ An agent's final report should state:
 
 Never report a corpus contribution as validated if only formatting or parsing
 was checked.
+# Admission and Regression Validation
+
+Use a package regression manifest to preserve its established semantic
+invariants while evaluating a proposal:
+
+```bash
+cargo run --quiet -p know-cli -- admit \
+  knowledge/geometry/concepts.know \
+  knowledge/geometry/proposals/pentagon.know \
+  --regressions knowledge/geometry/regressions.know
+```
+
+To apply a cleanly accepted proposal, add `--apply`. The command rechecks that
+the base file did not change during admission, writes a same-directory temporary
+file, then renames it into place. It refuses decisions with warnings, rejection,
+conflict, or deferral.

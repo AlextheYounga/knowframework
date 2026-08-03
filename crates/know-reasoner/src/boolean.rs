@@ -316,4 +316,3 @@ pub(super) enum QueryFault {
     UnknownConcepts(Vec<Diagnostic>),
 }
 
-

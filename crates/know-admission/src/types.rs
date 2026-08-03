@@ -1,6 +1,6 @@
 use know_core::{Diagnostic, Provenance};
-use know_ontology::{AxiomSource, ConceptRecordSource, EntityRecordSource, RelationRecordSource};
 use know_lexicon::LexicalForm;
+use know_ontology::{AxiomSource, ConceptExprSource, ConceptRecordSource, EntityRecordSource, RelationRecordSource};
 use know_reasoner::{Proposition, Verdict};
 use serde::{Deserialize, Serialize};
 
@@ -126,7 +126,38 @@ pub struct RegressionCheck {
     pub expected: ExpectedVerdict,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// Persistent, source-level regression contract for a knowledge package.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegressionManifest {
+    #[serde(default)]
+    pub checks: Vec<RegressionCheckSource>,
+}
+
+impl RegressionManifest {
+    pub fn from_ron(input: &str) -> Result<Self, ron::error::SpannedError> {
+        ron::from_str(input)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegressionCheckSource {
+    pub description: String,
+    pub proposition: RegressionPropositionSource,
+    pub expected: ExpectedVerdict,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum RegressionPropositionSource {
+    ClassMembership { entity: String, class: ConceptExprSource },
+    SubclassOf { child: ConceptExprSource, parent: ConceptExprSource },
+    Equivalent { left: ConceptExprSource, right: ConceptExprSource },
+    Disjoint { left: ConceptExprSource, right: ConceptExprSource },
+    Satisfiable { class: ConceptExprSource },
+    RelationHolds { subject: String, relation: String, object: String },
+    Consistent,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ExpectedVerdict {
     Entailed,
     Contradicted,

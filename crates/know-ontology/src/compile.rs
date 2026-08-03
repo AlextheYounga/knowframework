@@ -341,4 +341,3 @@ fn detect_definition_cycles(concepts: &[Concept], out: &mut Vec<Diagnostic>) {
     }
 }
 
-
