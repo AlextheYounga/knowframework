@@ -601,7 +601,8 @@ know/
         know-admission/
         know-owl/
         know-cli/
-        know-test-support/
+    tests/
+        fixtures/
 
     knowledge/
         core/

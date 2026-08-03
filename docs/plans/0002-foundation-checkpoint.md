@@ -44,7 +44,7 @@ The root Cargo manifest is now a workspace containing:
 - `know-admission`
 - `know-owl`
 - `know-cli`
-- `know-test-support`
+- `tests/fixtures` (`fixtures` crate)
 
 The old placeholder `src/main.rs` binary was removed. Shared dependencies are
 centralized in the workspace manifest, with Serde/RON, `thiserror`, and Clap

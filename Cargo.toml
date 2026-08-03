@@ -7,7 +7,7 @@ members = [
     "crates/know-admission",
     "crates/know-owl",
     "crates/know-cli",
-    "crates/know-test-support",
+    "tests/fixtures",
     "tests/cleancode",
 ]
 resolver = "2"
@@ -23,7 +23,7 @@ know-lexicon     = { path = "crates/know-lexicon" }
 know-reasoner    = { path = "crates/know-reasoner" }
 know-admission   = { path = "crates/know-admission" }
 know-owl         = { path = "crates/know-owl" }
-know-test-support = { path = "crates/know-test-support" }
+fixtures         = { path = "tests/fixtures" }
 
 serde    = { version = "1", features = ["derive"] }
 ron      = "0.8"
@@ -84,5 +84,4 @@ manual_let_else = "warn"
 manual_ok_or = "warn"
 map_unwrap_or = "warn"
 unnecessary_wraps = "warn"
-
 

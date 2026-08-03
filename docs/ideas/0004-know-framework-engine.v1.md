@@ -68,7 +68,8 @@ know/
 │   ├── know-core/
 │   ├── know-engine/
 │   ├── know-cli/
-│   └── know-test-support/
+├── tests/
+│   └── fixtures/
 ├── examples/
 │   └── geometry/
 ├── docs/
@@ -128,7 +129,7 @@ know validate
 
 The CLI may load a serialized Know IR fixture. It does not need a custom source language yet.
 
-## `know-test-support`
+## `tests/fixtures`
 
 Contains:
 

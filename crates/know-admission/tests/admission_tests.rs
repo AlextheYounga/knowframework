@@ -4,7 +4,7 @@ use know_admission::{
     RegressionCheck,
 };
 use know_ontology::{AxiomSource, ConceptExprSource, ConceptRecordSource, ConceptStatus};
-use know_test_support::geometry::geometry_source;
+use fixtures::geometry::geometry_source;
 
 fn generator() -> GeneratorIdentity {
     GeneratorIdentity { kind: GeneratorKind::Llm, model_id: Some("test-model".into()), run_id: "run-1".into() }

@@ -170,7 +170,8 @@ know/
 │   ├── know-engine/
 │   ├── know-admission/
 │   ├── know-cli/
-│   └── know-test-support/
+├── tests/
+│   └── fixtures/
 ├── knowledge/
 │   └── geometry/
 │       ├── Know.toml
@@ -258,7 +259,7 @@ know audit show <admission-id>
 know audit concept geometry::Square
 ```
 
-## `know-test-support`
+## `tests/fixtures`
 
 Owns:
 

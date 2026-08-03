@@ -1,5 +1,5 @@
 [package]
-name = "know-test-support"
+name = "fixtures"
 version.workspace = true
 edition.workspace = true
 

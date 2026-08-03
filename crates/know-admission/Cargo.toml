@@ -15,4 +15,4 @@ serde         = { workspace = true }
 ron           = { workspace = true }
 
 [dev-dependencies]
-know-test-support = { workspace = true }
+fixtures = { workspace = true }

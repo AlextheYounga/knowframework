@@ -9,7 +9,7 @@
 
 use know_ontology::ConceptExpr;
 use know_reasoner::{BooleanReasoner, Proposition, Reasoner, ReasoningOutcome, Verdict};
-use know_test_support::geometry::{geometry_module, geometry_with_impossible_entity, geometry_with_square_entity};
+use fixtures::geometry::{geometry_module, geometry_with_impossible_entity, geometry_with_square_entity};
 
 fn named(id: &str) -> ConceptExpr {
     ConceptExpr::named(id)

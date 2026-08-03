@@ -121,6 +121,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d07550c9036bf2ae0c684c4297d503f838287c83c53686d05370d0e139ae570"
 
 [[package]]
+name = "fixtures"
+version = "0.1.0"
+dependencies = [
+ "know-core",
+ "know-ontology",
+]
+
+[[package]]
 name = "heck"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -136,11 +144,11 @@ checksum = "a6cb138bb79a146c1bd460005623e142ef0181e3d0219cb493e02f7d08a35695"
 name = "know-admission"
 version = "0.1.0"
 dependencies = [
+ "fixtures",
  "know-core",
  "know-lexicon",
  "know-ontology",
  "know-reasoner",
- "know-test-support",
  "ron",
  "serde",
 ]
@@ -198,15 +206,7 @@ dependencies = [
 name = "know-reasoner"
 version = "0.1.0"
 dependencies = [
- "know-core",
- "know-ontology",
- "know-test-support",
-]
-
-[[package]]
-name = "know-test-support"
-version = "0.1.0"
-dependencies = [
+ "fixtures",
  "know-core",
  "know-ontology",
 ]

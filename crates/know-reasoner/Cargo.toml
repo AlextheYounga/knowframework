@@ -11,4 +11,4 @@ know-core     = { workspace = true }
 know-ontology = { workspace = true }
 
 [dev-dependencies]
-know-test-support = { workspace = true }
+fixtures = { workspace = true }
