@@ -9,3 +9,4 @@ workspace = true
 [dependencies]
 know-core     = { workspace = true }
 know-ontology = { workspace = true }
+owl-dl-core = "0.3.0"
