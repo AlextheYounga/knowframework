@@ -1,19 +1,21 @@
 # Know
 
-Know is a Rust framework for building, validating, and reasoning over discrete semantic knowledge. It keeps canonical concepts separate from the words used to describe them, gives accepted claims explicit logical meaning, and records enough provenance and reasoning detail for results to be inspected.
+Know is a Rust framework for building, validating, and reasoning over discrete semantic knowledge.
+
+## The Problem
+
+Human knowledge is largely expressed in natural language, but natural language is not a precise knowledge representation. Words change meaning with context, distinct ideas share the same name, and unstated assumptions are carried silently from one claim to the next. This flexibility makes language powerful for communication and unreliable as an executable foundation for knowledge.
+
+Modern AI can navigate that ambiguity remarkably well, but its knowledge remains distributed across statistical representations. Each answer reconstructs the relevant concepts and relationships for the moment. The result can be useful without being stable, cumulative, or independently verifiable.
+
+Know explores a possibility: *perhaps the current AI revolution is just a stepping stone toward making the distinctions encoded in language explicit, testable, and measurable - towards "objective" definitions.* And if you have objective definitions, you can build a deterministic program for all human knowledge. An AI can propose what a word means in a particular context; Know can give that meaning a stable identity, relate it to other concepts, and check what follows from accepting it.
+
+The aim is not to declare a perfectly true body of human knowledge. Logical consistency cannot establish that empirical premises are true. 
+
+**The aim is to build an increasingly coherent body of knowledge in which meanings are explicit, contradictions are exposed, conclusions are reproducible, and every accepted change can be inspected and challenged.**
 
 > [!IMPORTANT]
 > Know is an early-stage research prototype. The repository contains a working ontology compiler, lexical resolver, reasoners, OWL exporter, and proposal admission pipeline. It does not yet implement the complete self-editing knowledge language described in [`docs/idea.md`](docs/idea.md).
-
-## Why Know?
-
-Knowledge systems often blur together language, meaning, and inference. Know treats them as distinct layers:
-
-- **Words are not concepts.** A word such as "diamond" can refer to several stable concept IDs. Context resolves the intended sense before reasoning begins.
-- **Unknown is not false.** Reasoning follows the open-world assumption: a claim is `Unknown` when neither it nor its negation follows.
-- **Unsupported is not unknown.** A query outside a reasoner's supported fragment is reported explicitly instead of being approximated.
-- **Generated knowledge is a proposal.** New claims pass structural, lexical, logical, and regression checks before they can modify a module.
-- **Results are inspectable.** Entailed and contradicted verdicts can include supporting axioms and inference steps.
 
 ## Current Capabilities
 
