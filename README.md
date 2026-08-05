@@ -1,14 +1,18 @@
 # Know
 
-Know is a Rust framework for building, validating, and reasoning over discrete semantic knowledge.
+Know is a Rust framework for building, validating, and reasoning over discrete semantic knowledge. It is intended to be an indefinite project. 
 
 ## The Problem
 
 Human knowledge is largely expressed in natural language, but natural language is not a precise knowledge representation. Words change meaning with context, distinct ideas share the same name, and unstated assumptions are carried silently from one claim to the next. This flexibility makes language powerful for communication and unreliable as an executable foundation for knowledge.
 
-Modern AI can navigate that ambiguity remarkably well, but its knowledge remains distributed across statistical representations. Each answer reconstructs the relevant concepts and relationships for the moment. The result can be useful without being stable, cumulative, or independently verifiable.
+This is the problem of **polysemy**, and it was the main reason why AI had to be built in the Big Calculus approach we use today, because one word does not map cleanly to a specific concept. AI is begging for a new language, and we can see this in the way that it combines and invents words; **English is not enough.** 
 
-Know explores a possibility: *perhaps the current AI revolution is just a stepping stone toward making the distinctions encoded in language explicit, testable, and measurable - towards "objective" definitions.* And if you have objective definitions, you can build a deterministic program for all human knowledge. An AI can propose what a word means in a particular context; Know can give that meaning a stable identity, relate it to other concepts, and check what follows from accepting it.
+Know explores a possibility: 
+
+>*What if the current AI revolution is just a stepping stone towards creating measurable definitions for concepts?*
+
+If you have objective definitions for all English concepts, you can build a pleasantly discrete, deterministic program for all human knowledge. An AI can propose what a word means in a particular context; Know can give that meaning a stable identity, relate it to other concepts, and check what follows from accepting it.
 
 The aim is not to declare a perfectly true body of human knowledge. Logical consistency cannot establish that empirical premises are true. 
 
@@ -16,6 +20,25 @@ The aim is not to declare a perfectly true body of human knowledge. Logical cons
 
 > [!IMPORTANT]
 > Know is an early-stage research prototype. The repository contains a working ontology compiler, lexical resolver, reasoners, OWL exporter, and proposal admission pipeline. It does not yet implement the complete self-editing knowledge language described in [`docs/idea.md`](docs/idea.md).
+
+## From Words to Concepts
+
+Know does not treat a word as a unit of meaning. It treats a word as a lexical form that may refer to several canonical concepts:
+
+```text
+"bank"
+  -> finance::bank
+  -> geography::river_bank
+  -> aviation::banking_maneuver
+```
+
+Those concepts remain distinct. Know never defines `bank` as a logical union of them. The lexical form records its language and part of speech, while each binding records context hints, usage examples, and provenance that can help determine which concept a particular use intends. 
+
+The mapping works in both directions: one lexical form may refer to many concepts, and several lexical forms may refer to the same concept. A canonical concept ID, however, identifies exactly one intended meaning.
+
+Resolution happens before logical reasoning. Given `bank` near concepts such as `finance::loan` and `finance::deposit`, the resolver can select `finance::bank`. Near `geography::river` and `geography::shore`, it can select `geography::river_bank`. If the available context does not clearly favor one candidate, the result is `Ambiguous`; the reasoner does not guess and ambiguity does not become logical `Or`.
+
+The current resolver implements this model with manually authored bindings, surrounding concept hints, and an explicit domain hint. The planned resolution layer may also use grammatical role, surrounding words, embeddings, previously resolved discourse entities, explicit user context, and LLM interpretation. These signals may discover or rank candidate concepts, but they cannot determine concept identity or logical truth.
 
 ## Current Capabilities
 
