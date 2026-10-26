@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "crates/know-core",
+    "crates/know-kernel",
     "crates/know-ontology",
     "crates/know-lexicon",
     "crates/know-reasoner",
@@ -18,6 +19,7 @@ edition = "2024"
 
 [workspace.dependencies]
 know-core        = { path = "crates/know-core" }
+know-kernel      = { path = "crates/know-kernel" }
 know-ontology    = { path = "crates/know-ontology" }
 know-lexicon     = { path = "crates/know-lexicon" }
 know-reasoner    = { path = "crates/know-reasoner" }
@@ -84,4 +86,3 @@ manual_let_else = "warn"
 manual_ok_or = "warn"
 map_unwrap_or = "warn"
 unnecessary_wraps = "warn"
-

@@ -569,6 +569,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "know-kernel"
+version = "0.1.0"
+dependencies = [
+ "thiserror 2.0.19",
+]
+
+[[package]]
 name = "know-lexicon"
 version = "0.1.0"
 dependencies = [
