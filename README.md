@@ -42,6 +42,9 @@ The current resolver implements this model with manually authored bindings, surr
 
 ## Current Capabilities
 
+- Check explicit proof terms in a small dependently typed kernel with `Prop`,
+  universes, functions, quantification, equality, definitions, and visible
+  assumption lineage.
 - Parse RON-encoded `.know` ontology modules into a typed intermediate representation.
 - Validate schema versions, IDs, references, concept definitions, and definition cycles.
 - Answer subclass, equivalence, disjointness, satisfiability, membership, and consistency queries.
@@ -185,6 +188,7 @@ Know is a Cargo workspace split by responsibility:
 | Crate | Responsibility |
 | --- | --- |
 | `know-core` | Typed IDs, provenance, versions, and diagnostics. |
+| `know-kernel` | Trusted term normalization, type checking, equality substitution, theorem checking, and assumption lineage. |
 | `know-ontology` | RON source schema, validation, compilation, and typed ontology IR. |
 | `know-lexicon` | Lexical forms, concept bindings, context, and resolution. |
 | `know-reasoner` | Reasoning contracts and the native SAT-backed Boolean reasoner. |
@@ -207,6 +211,7 @@ Useful focused suites include:
 
 ```bash
 cargo test -p know-ontology --test compile_tests
+cargo test -p know-kernel --test foundation
 cargo test -p know-reasoner --test geometry
 cargo test -p know-admission --test admission_tests
 ```
@@ -218,6 +223,7 @@ Corpus changes must follow [the contribution guide](.agents/README.md), includin
 ## Current Boundaries
 
 - This is a foundation for the larger Know research direction, not a complete proof language or autonomous knowledge system.
+- The proof kernel currently has a Rust construction API but no readable source parser, context imports, inductive declarations, proof search, or CLI integration.
 - `import-owl` and `diff-reasoner` are CLI placeholders and return not-implemented errors.
 - OWL import, cross-module ontology imports, immutable knowledge versioning, and LLM integration are not implemented.
 - `Know.toml` records package intent but is not currently loaded or enforced by the CLI.
@@ -225,7 +231,7 @@ Corpus changes must follow [the contribution guide](.agents/README.md), includin
 - The native Boolean reasoner does not approximate `Exists`, `ForAll`, or relation assertions; relational support is limited to the capabilities exposed by the rustdl adapter.
 - The rustdl adapter supports declarations, Boolean and object-restriction expressions, listed class/object-property assertions, and relation domain/range. Classification, OWL import, and OWL constructs outside that slice remain unsupported. Backend failures are reported as `InternalError` or `ResourceLimit`, never as logical `Unknown`.
 
-The broader design and its non-goals are documented in [A Self-Editing Language for Coherent Knowledge](docs/idea.md).
+The broader design and its non-goals are documented in [A Self-Editing Language for Coherent Knowledge](docs/idea.md). The current implementation boundary is recorded in the [proof-kernel capability map](docs/proof-kernel-capabilities.md).
 
 ## License
 
