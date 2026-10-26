@@ -48,8 +48,8 @@ The current resolver implements this model with manually authored bindings, surr
 - Classify the direct superclasses, subclasses, and equivalent classes of a concept.
 - Resolve lexical forms to canonical concepts while preserving genuine ambiguity.
 - Evaluate knowledge proposals through a five-stage admission pipeline and apply clean proposals atomically.
-- Export validated modules as OWL 2 Functional Syntax.
-- Reason over the Boolean concept fragment with a native SAT-backed engine and over the current relational fragment through the rustdl adapter.
+- Export parser-validated OWL 2 Functional Syntax through a strict, kind-safe Know-ID IRI mapping; standards translation failures are separate from rustdl initialization failures.
+- Reason over the Boolean concept fragment with a native SAT-backed engine and the supported OWL object-property slice through the rustdl adapter; OWL queries use open-world, consistency-based negative checks, and incomplete or internal backend work is reported separately from logical verdicts.
 
 ## Quick Start
 
@@ -83,7 +83,7 @@ cargo run --quiet -p know-cli -- \
 
 ```text
 Entailed
-  rustdl refuted a counterexample
+  rustdl completed the subclass check
 ```
 
 Resolve an ambiguous word, then provide context:
@@ -223,6 +223,7 @@ Corpus changes must follow [the contribution guide](.agents/README.md), includin
 - `Know.toml` records package intent but is not currently loaded or enforced by the CLI.
 - The admission pipeline's ontological grounding policy remains a placeholder.
 - The native Boolean reasoner does not approximate `Exists`, `ForAll`, or relation assertions; relational support is limited to the capabilities exposed by the rustdl adapter.
+- The rustdl adapter supports declarations, Boolean and object-restriction expressions, listed class/object-property assertions, and relation domain/range. Classification, OWL import, and OWL constructs outside that slice remain unsupported. Backend failures are reported as `InternalError` or `ResourceLimit`, never as logical `Unknown`.
 
 The broader design and its non-goals are documented in [A Self-Editing Language for Coherent Knowledge](docs/idea.md).
 

@@ -15,3 +15,4 @@ horned-owl = "1.4"
 
 [dev-dependencies]
 fixtures = { workspace = true }
+owl-dl-core = "0.3.0"

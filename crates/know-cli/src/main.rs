@@ -111,14 +111,14 @@ fn run(command: Command) -> Result<(), String> {
         Command::Reason { module, query } => {
             let module = load_and_compile(&module)?;
             let proposition = parse_query(&query)?;
-            let reasoner = RustdlReasoner::new(&module)?;
+            let reasoner = RustdlReasoner::new(&module).map_err(|error| error.to_string())?;
             print_verdict(reasoner.query(&proposition), false)
         }
 
         Command::Explain { module, query } => {
             let module = load_and_compile(&module)?;
             let proposition = parse_query(&query)?;
-            let reasoner = RustdlReasoner::new(&module)?;
+            let reasoner = RustdlReasoner::new(&module).map_err(|error| error.to_string())?;
             print_verdict(reasoner.query(&proposition), true)
         }
 
@@ -196,7 +196,7 @@ fn run(command: Command) -> Result<(), String> {
 
         Command::ExportOwl { module } => {
             let m = load_and_compile(&module)?;
-            let owl = export_owl_functional(&m)?;
+            let owl = export_owl_functional(&m).map_err(|error| error.to_string())?;
             println!("{owl}");
             Ok(())
         }
