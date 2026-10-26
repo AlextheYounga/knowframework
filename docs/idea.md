@@ -1,4 +1,4 @@
-# A Self-Editing Language for Coherent Knowledge
+# A Living Language for Knowledge
 
 ## Status
 
@@ -6,72 +6,101 @@ Proposed research direction.
 
 ## Thesis
 
-Build one small programming language in which knowledge, definitions, contexts,
-quotations, and proofs are all native language constructs. Use an LLM as a semantic
-proposer that translates its distributed statistical knowledge into candidate programs.
-Allow the resulting knowledge program to revise its own definitions and theories as new
-data arrives, but require every revision to pass a fixed trusted verifier before it can
-become part of the next executable version.
+Build a language in which people and machines can state what they mean, what they
+believe, why they believe it, the context in which it holds, and what would justify
+changing it. Use an LLM to propose concepts, interpretations, and claims, but require
+those proposals to become explicit enough to inspect, criticize, compare, and revise
+before they join the shared body of knowledge.
+
+Know is philosophical before it is mathematical. Its primary questions are:
+
+```txt
+What is this?
+What does this claim mean?
+What grounds it?
+In which context does it hold?
+What follows if we accept it?
+What would cause us to revise it?
+```
+
+Formal logic serves this inquiry. It reveals consequences and contradictions, but it
+does not by itself establish that a premise is true, that a definition is adequate, or
+that a question has been understood. Proof is an instrument of intellectual conscience,
+not the definition of knowledge.
 
 The essential loop is:
 
 ```txt
-current knowledge program
-    + new language or evidence
-    -> candidate program patches
-    -> type checking, proof checking, and empirical testing
-    -> deterministic patch selection
-    -> next knowledge program
+current body of knowledge
+    + a question, experience, argument, or source
+    -> candidate meanings and claims
+    -> interpretation, criticism, comparison, and testing
+    -> explicit judgment with stated grounds
+    -> a more complete body of knowledge
 ```
 
-The trusted proof kernel does not rewrite itself. The knowledge expressed in the
-language does.
+The trusted verifier keeps inference accountable. It does not replace interpretation,
+evidence, judgment, or the continuing work of understanding.
 
-The intended result is not an omniscient machine. It is an indefinitely extensible
-body of executable knowledge with four unusually strong properties:
+The intended result is an indefinitely extensible body of knowledge with these
+properties:
 
 ```txt
-- every deductive conclusion is proof-checkable
-- conflicting assertions can be represented without being jointly asserted
-- every accepted revision is explicit and reversible
-- repeated questions over the same version receive the same answers
+- concepts express determinate meanings rather than merely occupying schema slots
+- claims retain their grounds, sources, contexts, and objections
+- disagreement can be represented without being erased or falsely reconciled
+- conclusions expose both their reasoning and the premises on which they depend
+- every accepted revision is explicit, inspectable, and reversible
+- each revision contributes to a more complete understanding of its subject
 ```
 
 ---
 
 ## 1. What Is Being Built?
 
-This project is a language and runtime for **semantic crystallization**.
+This project is a language and runtime for building a living body of knowledge.
 
-An LLM contains a distributed statistical representation of language and much of the
-knowledge expressed through language. The proposed system repeatedly converts useful,
-stable parts of that representation into discrete code.
+It makes four philosophical activities executable without reducing them to one another:
 
-The model begins as both memory and reasoner:
+```txt
+ontology      — distinguishing what kinds of things there are
+epistemology  — recording what warrants accepting a claim
+hermeneutics  — interpreting language within history and context
+dialectic     — improving knowledge through objection and revision
+```
+
+An LLM can help surface distinctions, interpretations, and claims latent in language.
+It is neither an oracle nor the final judge of them. Know turns its proposals into
+objects that can be examined independently of the model that produced them.
+
+Today the model often acts as memory, interpreter, and reasoner at once:
 
 ```txt
 question -> large numerical calculation -> generated answer
 ```
 
-The desired end state is:
+Know separates those responsibilities:
 
 ```txt
-question -> compiled knowledge program -> checked result
+question
+    -> explicit interpretation
+    -> relevant concepts, claims, sources, and objections
+    -> checked consequences
+    -> answer with grounds and limits
 ```
 
-The model remains useful for interpreting new language, inventing candidate
-formalizations, discovering abstractions, and explaining checked results. It gradually
-ceases to be the primary store of already-crystallized knowledge.
+The model remains useful for interpreting new language, discovering distinctions,
+proposing revisions, and explaining results. It gradually ceases to be the unexamined
+authority and primary store of knowledge that has already been made explicit.
 
-This is not a complete translation of neural weights. It is an incremental behavioral
-extraction process:
+This is not a translation of neural weights. It is an ongoing philosophical practice:
 
 ```txt
-interrogate the model
-    -> identify stable distinctions and claims
-    -> express them in one formal language
-    -> attack them with counterexamples
-    -> retain the fragments that survive
+encounter a question or claim
+    -> clarify its terms and context
+    -> identify its grounds and alternatives
+    -> test its consequences and meet objections
+    -> revise the shared account
 ```
 
 ---
@@ -82,22 +111,28 @@ interrogate the model
 
 The language must:
 
-1. Represent entities, concepts, relations, propositions, contexts, definitions,
-   quotations, evidence, and proofs.
-2. Give every accepted expression exact operational meaning.
-3. Make deductive validity decidable to check, even when finding a proof is difficult.
+1. Distinguish words, concepts, things, claims, and interpretations.
+2. Make definitions answer what a concept means and where that meaning applies.
+3. Preserve the grounds for every accepted claim: proof, evidence, testimony,
+   observation, convention, or explicit premise.
 4. Represent “source S claims P” without thereby asserting `P`.
-5. Permit several incompatible definitions or theories to exist as named values.
-6. Allow the knowledge program to propose revisions to its own code.
-7. Apply revisions transactionally, producing immutable theory versions.
-8. Calculate which definitions, theorems, and answers a revision changes.
-9. Distinguish proof, evidence, hypothesis, report, and rejection.
-10. Answer queries through proof construction rather than language-model improvisation.
+5. Preserve incompatible definitions and theories when the disagreement is real.
+6. Expose assumptions, consequences, counterexamples, and unresolved objections.
+7. Let the body of knowledge revise itself without hiding what changed or why.
+8. Grow toward comprehensive knowledge rather than accumulating isolated examples.
+9. Distinguish certainty, warrant, hypothesis, report, convention, and rejection.
+10. Answer questions from explicit knowledge while stating the grounds and limits of
+    each answer.
 
 ### 2.2 Non-functional goals
 
 | Property | Requirement |
 |---|---|
+| Meaningfulness | Every accepted record contributes substantive understanding |
+| Groundedness | Every accepted claim identifies why it is worthy of belief |
+| Pluralism | Genuine differences of meaning or belief remain visible |
+| Intellectual humility | The system distinguishes a lack of proof from falsity and a proof from truth |
+| Completeness | Revisions close real gaps in the shared account rather than displaying schema coverage |
 | Determinism | A program version, query, and resource policy produce a reproducible result |
 | Soundness | The trusted kernel accepts only well-typed proof terms constructed by its rules |
 | Replayability | Every theory version and revision can be reconstructed exactly |
@@ -109,7 +144,25 @@ The language must:
 | Security | Quoted or imported code cannot execute or alter the verifier implicitly |
 | Portability | The language has a formal specification independent of one LLM vendor |
 
-### 2.3 Non-goals
+### 2.3 Knowledge is the product, not scaffolding
+
+The accepted knowledge program must grow toward a complete body of knowledge. It is
+not a collection of schema demonstrations, illustrative stubs, or records waiting to
+be filled in later.
+
+**Boilerplate is never acceptable as knowledge.** Do not admit placeholder IDs, dummy
+values, generic provenance, empty metadata, vacuous definitions, or schema-shaped
+records merely because they parse or exercise an implementation path. Every accepted
+record must deepen the shared account of its subject.
+
+Incomplete knowledge is not accepted knowledge. If a record cannot yet be populated
+completely and supported, it remains a proposal or explicit backlog item outside the
+accepted corpus. `Unknown` is a valid result of reasoning over complete accepted
+knowledge; it is not permission to accept unfinished records. Examples and test
+fixtures also remain outside the accepted corpus unless every claim and field they
+contain meets the same standard as production knowledge.
+
+### 2.4 Non-goals
 
 The first language should not attempt to:
 
@@ -153,6 +206,12 @@ can be deleted and rebuilt from the knowledge program without changing its meani
 ---
 
 ## 4. Foundational Calculus
+
+The calculus is infrastructure for philosophical accountability. It determines whether
+a conclusion follows from stated commitments; it cannot decide whether those
+commitments are true, whether their concepts are adequate, or whether another context
+frames the subject better. Those remain questions for evidence, interpretation, and
+critical judgment represented in the knowledge language itself.
 
 ### 4.1 Recommended foundation
 

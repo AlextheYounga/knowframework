@@ -1,22 +1,22 @@
 # Know
 
-Know is a Rust framework for building, validating, and reasoning over discrete semantic knowledge. It is intended to be an indefinite project. 
+Know is a Rust framework for building a living, inspectable body of knowledge. It is intended to be an indefinite project.
 
 ## The Problem
 
-Human knowledge is largely expressed in natural language, but natural language is not a precise knowledge representation. Words change meaning with context, distinct ideas share the same name, and unstated assumptions are carried silently from one claim to the next. This flexibility makes language powerful for communication and unreliable as an executable foundation for knowledge.
+Human knowledge is largely expressed in natural language. Language gives us interpretation, analogy, history, and perspective, but it also leaves meanings, assumptions, and grounds unstated. Words change meaning with context, distinct ideas share the same name, and a source's claim can easily be mistaken for an established fact.
 
-This is the problem of **polysemy**, and it was the main reason why AI had to be built in the Big Calculus approach we use today, because one word does not map cleanly to a specific concept. AI is begging for a new language, and we can see this in the way that it combines and invents words; **English is not enough.** 
+Polysemy is one visible part of the problem: one word does not map cleanly to one concept. More broadly, knowledge requires us to ask what a claim means, what grounds it, where it applies, what follows from it, and what would justify revising it. **English alone does not make those commitments explicit.**
 
 Know explores a possibility: 
 
->*What if the current AI revolution is just a stepping stone towards creating measurable definitions for concepts?*
+>*What if AI could help us make meanings, grounds, disagreements, and consequences explicit enough to examine together?*
 
-If you have objective definitions for all English concepts, you can build a pleasantly discrete, deterministic program for all human knowledge. An AI can propose what a word means in a particular context; Know can give that meaning a stable identity, relate it to other concepts, and check what follows from accepting it.
+An AI can propose what a word means in a particular context, identify possible grounds for a claim, and expose competing interpretations. Know can give each meaning a stable identity, preserve its context and provenance, relate it to other concepts, and check what follows from accepting it.
 
 The aim is not to declare a perfectly true body of human knowledge. Logical consistency cannot establish that empirical premises are true. 
 
-**The aim is to build an increasingly coherent body of knowledge in which meanings are explicit, contradictions are exposed, conclusions are reproducible, and every accepted change can be inspected and challenged.**
+**The aim is to build an increasingly complete and coherent body of knowledge in which meanings are explicit, claims retain their grounds, disagreements remain visible, conclusions are reproducible, and every accepted change can be inspected and challenged.** Logic serves that work; it does not replace interpretation, evidence, or judgment.
 
 > [!IMPORTANT]
 > Know is an early-stage research prototype. The repository contains a working ontology compiler, lexical resolver, reasoners, OWL exporter, and proposal admission pipeline. It does not yet implement the complete self-editing knowledge language described in [`docs/idea.md`](docs/idea.md).

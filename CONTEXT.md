@@ -1,4 +1,4 @@
-# A Self-Editing Language for Coherent Knowledge
+# Know: A Computational Metaphysical Framework
 
 ## Status
 
@@ -6,72 +6,126 @@ Proposed research direction.
 
 ## Thesis
 
-Build one small programming language in which knowledge, definitions, contexts,
-quotations, and proofs are all native language constructs. Use an LLM as a semantic
-proposer that translates its distributed statistical knowledge into candidate programs.
-Allow the resulting knowledge program to revise its own definitions and theories as new
-data arrives, but require every revision to pass a fixed trusted verifier before it can
-become part of the next executable version.
+Know seeks to computationally articulate the necessary structure of any possible
+reality, then construct knowledge by making explicit what follows from that structure
+and what requires further conditions.
 
-The essential loop is:
+The product is a body of runnable knowledge built upward from explicit philosophical
+foundations. A language, type system, compiler, proof checker, ontology, and specialized
+reasoners are instruments for constructing and executing that body; none is the goal by
+itself.
+
+The immediate work is to make foundational reasoning concrete:
 
 ```txt
-current knowledge program
-    + new language or evidence
-    -> candidate program patches
-    -> type checking, proof checking, and empirical testing
-    -> deterministic patch selection
-    -> next knowledge program
+What does this definition assert?
+Which established meanings does it use?
+Is it internally coherent?
+How do two concepts relate?
+Does this statement follow from the accepted foundation?
+Would accepting it introduce a contradiction?
+Which additional conditions would establish it?
+What is the complete derivational chain?
 ```
 
-The trusted proof kernel does not rewrite itself. The knowledge expressed in the
-language does.
+Know begins with explicit foundational axioms under a governing requirement of
+noncontradiction. Definitions construct new meanings from established meanings.
+Derivations construct new statements from accepted commitments. Further axioms or
+conditions may extend the body, but their contribution must remain visible in every
+conclusion that depends upon them.
 
-The intended result is not an omniscient machine. It is an indefinitely extensible
-body of executable knowledge with four unusually strong properties:
+The essential construction is:
 
 ```txt
-- every deductive conclusion is proof-checkable
-- conflicting assertions can be represented without being jointly asserted
-- every accepted revision is explicit and reversible
-- repeated questions over the same version receive the same answers
+foundational axioms
+    -> definitions
+    -> derived statements
+    -> further explicit conditions
+    -> higher-level concepts and knowledge
+```
+
+Every accepted contribution enters as one of these:
+
+```txt
+axiom                 an explicitly adopted foundational commitment
+definition            a construction expressed through established meanings
+derived statement     a conclusion established by a checked derivation
+conditional statement a conclusion whose additional premises remain explicit
+```
+
+Definitions must not conceal axioms. Derivations must not conceal assumptions.
+Conditional conclusions must not silently become unconditional.
+
+The intended result is an indefinitely extensible computational body with these
+properties:
+
+```txt
+- accepted knowledge is constructible only through consistency-preserving operations
+- concepts express determinate meanings rather than merely occupying schema slots
+- definitions expose their dependencies and exact logical consequences
+- concept comparisons state precisely which relationship has been established
+- every deductive conclusion has a checkable derivation or an explicit backend assurance
+- every additional condition remains visible in the conclusions that require it
+- contradictory content can be examined without entering the accepted body
+- every accepted revision is explicit, inspectable, replayable, and reversible
 ```
 
 ---
 
 ## 1. What Is Being Built?
 
-This project is a language and runtime for **semantic crystallization**.
+This project is a language and runtime for constructing knowledge from philosophical
+foundations.
 
-An LLM contains a distributed statistical representation of language and much of the
-knowledge expressed through language. The proposed system repeatedly converts useful,
-stable parts of that representation into discrete code.
-
-The model begins as both memory and reasoner:
+It makes several operations executable:
 
 ```txt
-question -> large numerical calculation -> generated answer
+state a foundational commitment precisely
+construct a definition from established meanings
+check whether a definition can be inhabited coherently
+compare concepts by implication, equivalence, overlap, and exclusion
+derive a statement from accepted commitments
+reject an extension that would create a contradiction
+identify conditions missing from a proposed derivation
+reconstruct the dependencies of every conclusion
 ```
 
-The desired end state is:
+The accepted body is not an unrestricted collection of statements. It is a constrained
+computational value whose public construction paths preserve its invariants:
 
 ```txt
-question -> compiled knowledge program -> checked result
+accepted knowledge
+    + proposed contribution
+    -> structural and semantic checking
+    -> complete consistency decision
+    -> new accepted knowledge
 ```
 
-The model remains useful for interpreting new language, inventing candidate
-formalizations, discovering abstractions, and explaining checked results. It gradually
-ceases to be the primary store of already-crystallized knowledge.
+If checking cannot complete, construction does not succeed. Candidate statements,
+quoted claims, rejected arguments, and inconsistent proposals may be represented for
+inspection without becoming accepted commitments.
 
-This is not a complete translation of neural weights. It is an incremental behavioral
-extraction process:
+Words are not the units of meaning. A word can refer to several concepts, and several
+words can refer to one concept. Know resolves intended concepts before checking a
+definition, comparison, or statement.
+
+The same body may later support empirical and domain knowledge, but those are built by
+adding explicit conditions above the foundation. Physical laws, broad empirical
+ingestion, and autonomous self-editing are not the initial organizing goals.
+
+An LLM may propose axioms, definitions, arguments, formalizations, proofs, and
+counterexamples. It is never the authority that admits them. Its proposals must become
+independent computational objects that can be checked without trusting the model.
+
+The desired execution path is:
 
 ```txt
-interrogate the model
-    -> identify stable distinctions and claims
-    -> express them in one formal language
-    -> attack them with counterexamples
-    -> retain the fragments that survive
+question
+    -> resolved meanings
+    -> normalized logical statement
+    -> accepted definitions and commitments
+    -> checked derivation or capability-bounded decision
+    -> answer with complete dependencies and assurance
 ```
 
 ---
@@ -82,22 +136,29 @@ interrogate the model
 
 The language must:
 
-1. Represent entities, concepts, relations, propositions, contexts, definitions,
-   quotations, evidence, and proofs.
-2. Give every accepted expression exact operational meaning.
-3. Make deductive validity decidable to check, even when finding a proof is difficult.
-4. Represent “source S claims P” without thereby asserting `P`.
-5. Permit several incompatible definitions or theories to exist as named values.
-6. Allow the knowledge program to propose revisions to its own code.
-7. Apply revisions transactionally, producing immutable theory versions.
-8. Calculate which definitions, theorems, and answers a revision changes.
-9. Distinguish proof, evidence, hypothesis, report, and rejection.
-10. Answer queries through proof construction rather than language-model improvisation.
+1. Represent foundational axioms, definitions, conditions, propositions, proofs, and
+   their dependencies.
+2. Distinguish words from the concepts they may express.
+3. Make definitions state exact constructions over established meanings.
+4. Check whether definitions are coherent, circular, satisfiable, or contradictory.
+5. Compare concepts by explicitly named relationships rather than lexical resemblance.
+6. Make accepted knowledge constructible only through operations that preserve
+   noncontradiction.
+7. Preserve the complete assumptions and definitions used by each conclusion.
+8. Represent quoted or rejected contradictions without admitting them as commitments.
+9. Distinguish a checked proof from a backend decision, incomplete search, unsupported
+   semantics, and internal failure.
+10. Revise the articulated foundation without hiding what changed or invalidating old
+    results silently.
 
 ### 2.2 Non-functional goals
 
 | Property | Requirement |
 |---|---|
+| Meaningfulness | Every accepted record contributes substantive understanding |
+| Consistency by construction | Contradictory commitments cannot inhabit the accepted knowledge type |
+| Dependency completeness | Every conclusion exposes all axioms, definitions, and conditions it requires |
+| Semantic precision | Every comparison names the exact relationship it establishes |
 | Determinism | A program version, query, and resource policy produce a reproducible result |
 | Soundness | The trusted kernel accepts only well-typed proof terms constructed by its rules |
 | Replayability | Every theory version and revision can be reconstructed exactly |
@@ -109,7 +170,25 @@ The language must:
 | Security | Quoted or imported code cannot execute or alter the verifier implicitly |
 | Portability | The language has a formal specification independent of one LLM vendor |
 
-### 2.3 Non-goals
+### 2.3 Knowledge is the product, not scaffolding
+
+The accepted knowledge program must grow toward a complete body of knowledge. It is
+not a collection of schema demonstrations, illustrative stubs, or records waiting to
+be filled in later.
+
+**Boilerplate is never acceptable as knowledge.** Do not admit placeholder IDs, dummy
+values, generic provenance, empty metadata, vacuous definitions, or schema-shaped
+records merely because they parse or exercise an implementation path. Every accepted
+record must deepen the shared account of its subject.
+
+Incomplete checking is not successful construction. If a proposed contribution cannot
+be checked to the assurance required by its accepted type, it remains a candidate
+outside the accepted body. `Unknown` is a valid result of a complete query over open
+knowledge; it is not permission to admit unchecked commitments. Examples and test
+fixtures remain outside the accepted corpus unless their claims meet the same standard
+as production knowledge.
+
+### 2.4 Non-goals
 
 The first language should not attempt to:
 
@@ -117,10 +196,12 @@ The first language should not attempt to:
 - reproduce every behavior of the source LLM
 - store prose as though prose were formal knowledge
 - decide every expressible proposition
-- prove empirical observations without assumptions
 - convert model confidence directly into truth
 - allow the program to redefine what counts as a valid proof
 - erase disputed or rejected claims from history
+- treat a backend verdict without a certificate as a kernel-checked proof
+- make physical or empirical theory the starting foundation
+- hide additional axioms inside definitions
 ```
 
 ---
@@ -150,9 +231,60 @@ why a change was accepted
 Search indexes, databases, caches, and optimized executors are compiler products. They
 can be deleted and rebuilt from the knowledge program without changing its meaning.
 
+### 3.1 Accepted knowledge is a type boundary
+
+`KnowledgeModule` and other intermediate representations may contain candidate or
+inconsistent material so that it can be diagnosed. They are not, by themselves, the
+accepted body.
+
+The accepted body must be represented by a type that cannot be constructed or mutated
+without passing the required checks:
+
+```txt
+CandidateKnowledge
+    -> parse and type check
+    -> resolve every referenced meaning
+    -> complete consistency check
+    -> dependency validation
+    -> AcceptedKnowledge
+```
+
+If a contradiction is explicit or follows from the candidate commitments, construction
+fails. If consistency checking is unsupported, incomplete, resource-limited, or fails
+internally, construction also fails. The candidate remains available for examination but
+does not inhabit `AcceptedKnowledge`.
+
+Local invariants belong in ordinary data types. Invariants that require inference belong
+at the accepted-body constructor. No public operation may mutate accepted knowledge
+without producing another checked value.
+
+### 3.2 Candidates, quotations, and accepted commitments
+
+The system must be able to discuss an invalid or contradictory statement without
+accepting it:
+
+```txt
+Candidate<P>       P is proposed for checking
+Quote<P>           P is inert content under examination
+Rejected<P>        P failed a recorded admission obligation
+Proof<P>           P has a kernel-checked derivation
+AcceptedPremise<P> P was explicitly admitted as a foundational or conditional axiom
+```
+
+There is no implicit conversion from candidate, quotation, report, or evidence into an
+accepted premise.
+
 ---
 
 ## 4. Foundational Calculus
+
+The calculus is the executable foundation for constructing definitions and checking
+what follows from accepted principles. Its rules must preserve noncontradiction and make
+every dependency explicit. Foundational axioms state the primitive philosophical
+commitments of the current account; checked derivations establish their consequences.
+
+The calculus does not silently add principles. If a result requires an additional axiom
+or context, that condition remains part of the result's dependency chain.
 
 ### 4.1 Recommended foundation
 
@@ -207,8 +339,9 @@ checking a proof it discovers must terminate.
 
 ### 4.4 Classical reasoning
 
-The core need not silently assume every classical principle. A context may explicitly
-import a classical axiom when required:
+Noncontradiction is a governing invariant of accepted knowledge. Other classical
+principles should not be imported merely because a backend assumes them. A context may
+explicitly adopt an additional principle when required:
 
 ```txt
 context ClassicalMathematics {
@@ -300,7 +433,7 @@ represented by evidence or probability claims *about* a proposition.
 A `Context` is a named theory containing definitions, premises, and derived theorems:
 
 ```txt
-context Biology2026 {
+context FoundationalAccount {
     define ...
     premise ...
     theorem ...
@@ -310,13 +443,17 @@ context Biology2026 {
 Contexts can import other contexts explicitly:
 
 ```txt
-context VeterinaryBiology2026 {
-    import Biology2026
-    import VeterinaryDefinitions2026
+context ConditionalTheory {
+    import FoundationalAccount
+    assume AdditionalCondition
 }
 ```
 
-Import conflicts fail compilation unless the program supplies an explicit resolution.
+Every executable context accepted by the body must satisfy its declared consistency
+obligation. Incompatible candidate theories may coexist as quoted or separately named
+objects for comparison, but they are not jointly imported into one accepted executable
+context. Import conflicts fail construction unless an explicit, consistency-preserving
+resolution is supplied.
 
 ### 5.6 Definition
 
@@ -331,6 +468,23 @@ define Grandparent(x: Person, z: Person) : Prop :=
 Expanding a definition must not add a new assumption. Pure definitions are therefore
 conservative extensions: they add vocabulary without changing what was previously
 provable in the old vocabulary.
+
+A definition is checked separately from the word or words that may refer to it. The
+framework must be able to compare definitions through several distinct relations:
+
+```txt
+same canonical concept
+definitionally equal after normalization
+logically equivalent conditions
+strictly narrower or broader
+overlapping but not equivalent
+mutually exclusive
+logical negations
+relationship unresolved
+```
+
+No one relationship may be reported as another. In particular, equivalent extensions
+do not by themselves establish identical meaning.
 
 ### 5.7 Quotation
 
@@ -496,28 +650,24 @@ here is to establish the language's conceptual size.
 
 ## 7. Basic Example
 
+The exact syntax remains illustrative. The example shows the intended dependency
+discipline rather than fixing the final encoding of existence.
+
 ```txt
-context AnimalTaxonomy {
+context Foundation {
     type Entity
 
-    concept Animal : Entity
-    concept Mammal : Entity
-    concept Dog : Entity
+    define SomethingExists : Prop :=
+        exists x: Entity. True
 
-    entity fido : Entity
+    define NothingExists : Prop :=
+        not SomethingExists
 
-    premise fido_dog : Dog(fido)
+    premise existence_exists : SomethingExists
 
-    premise dog_mammal :
-        forall x: Entity. Dog(x) -> Mammal(x)
-
-    premise mammal_animal :
-        forall x: Entity. Mammal(x) -> Animal(x)
-
-    theorem fido_animal : Animal(fido) {
-        let d = fido_dog
-        let m = dog_mammal(fido, d)
-        exact mammal_animal(fido, m)
+    theorem existence_excludes_nothing : not NothingExists {
+        exact fn nothing_exists: NothingExists =>
+            nothing_exists(existence_exists)
     }
 }
 ```
@@ -525,21 +675,21 @@ context AnimalTaxonomy {
 A query is evaluated inside an explicit context:
 
 ```txt
-query AnimalTaxonomy |- Animal(fido)
+query Foundation |- not NothingExists
 ```
 
 Possible result:
 
 ```txt
-PROVED Animal(fido)
+PROVED not NothingExists
 
 using:
-    fido_dog
-    dog_mammal
-    mammal_animal
+    definition SomethingExists
+    definition NothingExists
+    premise existence_exists
 
 proof:
-    fido_animal
+    existence_excludes_nothing
 ```
 
 If neither the proposition nor its negation is derivable:
@@ -852,19 +1002,19 @@ artifact must be rebuilt or explicitly removed.
 The candidate must not introduce a derivation of `False` into a context promised to be
 consistent.
 
-For expressive theories, failure to find a contradiction is not a proof of consistency.
-The strongest admissible changes are therefore, in descending order:
+Accepted construction requires the assurance declared by the accepted type. Failure to
+find a contradiction within a limit is not a completed consistency result. Candidate
+changes are therefore distinguished as follows:
 
 ```txt
 1. checked theorems, which add no assumptions
-2. conservative definitions
-3. extensions accompanied by a checked model or consistency certificate
-4. new scoped premises that pass bounded consistency analysis
-5. explicitly provisional contexts with no absolute consistency claim
+2. conservative definitions, which add no commitments
+3. extensions accompanied by a complete decision, checked model, or certificate
+4. incomplete or bounded checks, which remain candidates
 ```
 
-An expressive system cannot generally prove its own consistency. The language must
-state the assurance level instead of concealing this limit.
+The language must state the assurance level instead of allowing a bounded or failed
+check to construct a value whose type promises consistency.
 
 ### Gate 5: Semantic regression suite
 
@@ -895,36 +1045,25 @@ current program untouched.
 
 Consistency cannot be the only objective. The empty program is perfectly consistent.
 
-A revision policy should compare candidate theories using multiple properties:
+A stronger foundational body constructs more substantive knowledge without weakening
+its invariants or hiding dependencies. Candidate revisions should be compared through:
 
 ```txt
-evidence fit
-held-out predictive accuracy
-coverage of accepted questions
 proof coverage
-definition discrimination
+dependency completeness
+definition precision
+definition discrimination across boundary cases
+number of derived statements
 conceptual compression
-number of unsupported premises
-number of special-case exceptions
-number of unresolved conflicts
+number of primitive axioms
+number of hidden or redundant assumptions
+number of unresolved relationships
 revision size and semantic churn
 ```
 
-A conceptual objective is:
-
-```txt
-quality(T, D) =
-      evidence_fit(T, D)
-    + heldout_accuracy(T, D)
-    + proof_coverage(T)
-    + compression(T)
-    - unsupported_assumptions(T)
-    - unexplained_exceptions(T)
-    - complexity(T)
-    - instability(T)
-```
-
-The exact weights are policy, not logic. They must be declared and versioned.
+No aggregate score establishes philosophical necessity. Metrics may order engineering
+work or compare otherwise admissible candidates, but they cannot override a failed
+invariant or substitute for a derivation.
 
 ### 13.1 Hard invariants versus optimization targets
 
@@ -934,6 +1073,8 @@ Some properties are mandatory:
 kernel soundness
 type safety
 quotation isolation
+accepted-body consistency
+dependency completeness for checked derivations
 version replayability
 protected test preservation
 ```
@@ -943,7 +1084,6 @@ Others are optimization targets:
 ```txt
 coverage
 simplicity
-prediction
 compression
 stability
 ```
@@ -951,22 +1091,23 @@ stability
 The system may trade among optimization targets. It may not trade away a hard invariant
 to improve a score.
 
-### 13.2 Avoiding coherence theater
+### 13.2 Avoiding foundational theater
 
-A system could appear more coherent by deleting difficult facts, inventing narrow
-contexts, or labeling every candidate uncertain. Required countermeasures include:
+A system could appear foundational by declaring every difficult statement primitive,
+defining terms circularly, or weakening comparisons until nothing substantive follows.
+Required countermeasures include:
 
 ```txt
-minimum coverage constraints
-held-out evaluations
-penalties for unnecessary context splitting
-retention of rejected evidence
-semantic-diff review
 tests for vacuous definitions and theorems
+reports of primitive and conditional dependencies
+definition-cycle detection
+minimal semantic pairs and boundary cases
+retention of rejected counterexamples
+semantic-diff review
 ```
 
-Increasing coherence must mean explaining more evidence with better distinctions—not
-hiding evidence that creates difficulty.
+Increasing foundational coverage must mean deriving more through clearer constructions,
+not hiding assumptions behind names.
 
 ---
 
@@ -1025,7 +1166,8 @@ knowledge may not authorize a kernel revision
 
 ## 15. The LLM’s Role
 
-The LLM is an untrusted but powerful semantic compiler and theory editor.
+The LLM is an optional, untrusted proposer. The foundational body, its meanings, and its
+checking semantics do not depend on an LLM being present.
 
 ### 15.1 Candidate extraction
 
@@ -1094,18 +1236,17 @@ whether the trusted kernel changes
 
 ```mermaid
 flowchart TD
-    D[New text, evidence, or feedback] --> M[LLM semantic proposer]
-    K[Current knowledge program] --> M
-    M --> P[Candidate language patch]
-    P --> S[Sandboxed candidate theory]
-    S --> V[Type and proof kernel]
-    S --> R[Regression and counterexample tests]
-    S --> Q[Quality evaluator]
-    V --> G[Revision gate]
+    F[Foundational axioms] --> K[Accepted knowledge]
+    P[Candidate axiom, definition, or derivation] --> S[Candidate construction]
+    K --> S
+    S --> T[Type and structure checking]
+    S --> V[Proof or complete consistency checking]
+    S --> R[Definition and semantic regression tests]
+    T --> G[AcceptedKnowledge constructor]
+    V --> G
     R --> G
-    Q --> G
-    G -->|reject| X[Retain candidate and diagnostics]
-    G -->|accept| N[Immutable next program version]
+    G -->|reject or incomplete| X[Retain candidate and diagnostics]
+    G -->|accept| N[Immutable accepted version]
     N --> K
 
     U[User query] --> C[Language query compiler]
@@ -1128,10 +1269,13 @@ proof checker
 quotation-level checker
 revision transaction verifier
 canonical serializer and hash implementation
+accepted-knowledge constructor
 ```
 
-The LLM, theorem search, quality scoring, indexes, and explanation generator are
-untrusted.
+Any external decision procedure used to construct accepted knowledge is also trusted
+unless it returns a certificate checked by this smaller base. The project must state
+this boundary explicitly. The LLM, theorem search, heuristic scoring, indexes, and
+natural-language explanation generator remain untrusted.
 
 ### 16.2 One semantics, multiple execution strategies
 
@@ -1149,7 +1293,7 @@ semantics or if its result is checked by the kernel afterward.
 A query asks for the status of a proposition in a named program version and context:
 
 ```txt
-query Knowledge@43::ModernBiology |- Mammal(blue_whale)
+query Knowledge@43::Foundation |- Equivalent(ConceptA, ConceptB)
 ```
 
 Results should be discrete:
@@ -1157,12 +1301,18 @@ Results should be discrete:
 ```txt
 PROVED         proof of P accepted
 REFUTED        proof of not P accepted
-BOTH           both are derivable in a context not promised consistent
 UNDETERMINED   neither is derivable
+DECIDED        a trusted decision procedure completed without returning a proof artifact
 TIMEOUT        search ended before a conclusion
+UNSUPPORTED    the query falls outside the executor's supported fragment
 ILL_TYPED      query is not a meaningful proposition
 INVALID        purported proof or program failed checking
+INTERNAL_ERROR execution failed independently of the logical result
 ```
+
+`BOTH` is not a result for an accepted executable context. If both a proposition and its
+negation are derivable, the candidate context is inconsistent and cannot construct
+accepted knowledge. Opposing quoted claims may still coexist as inert data.
 
 Every positive or negative conclusion returns:
 
@@ -1174,9 +1324,14 @@ proof object
 premise dependency set
 definition dependency set
 revision lineage
+assurance kind
+dependency completeness
 ```
 
-Natural-language answers are projections of this result, not independent generations.
+When a backend returns a complete verdict without a proof or source justification, the
+result records that limitation. An empty proof or support list must not masquerade as a
+complete explanation. Natural-language answers are projections of the structured result,
+not independent generations.
 
 ---
 
@@ -1254,11 +1409,12 @@ Definition evolution becomes program maintenance rather than silent semantic dri
 
 ## 19. Consistency and Its Exact Limit
 
-The language can guarantee that accepted proof terms obey its inference rules. It
-cannot, from inside a sufficiently expressive theory, generally guarantee that every
-set of premises is consistent or that every premise is true.
+The accepted knowledge type promises that contradictory commitments cannot inhabit it.
+That promise is enforced by restricting construction to checks that can deliver the
+required assurance. The system does not admit a contribution merely because no
+contradiction was found within a search budget.
 
-This produces three assurance levels.
+This produces three relevant assurance forms.
 
 ### Level 1: Kernel soundness
 
@@ -1270,39 +1426,41 @@ guarantee.
 The theory grows through checked theorems and conservative definitions. These do not
 introduce new assumptions.
 
-### Level 3: Empirical theory revision
+### Level 3: Checked premise extension
 
-New observations may require new premises. These are tested for known contradictions,
-predictive accuracy, and evidence support, but their factual truth remains revisable.
+A new foundational or conditional premise changes what the body commits to. It can
+construct a new accepted version only when the supported fragment provides a completed
+consistency decision, checked model, or certificate sufficient for the accepted type.
 
-The honest promise is therefore:
+The operational promise is:
 
-> The program never presents an invalid derivation as a proof, and it never conceals
-> which adopted premises a conclusion depends upon.
-
-That is stronger and more useful than claiming metaphysical certainty.
+> Accepted knowledge is created only through constructors that preserve
+> noncontradiction, and every conclusion discloses the axioms, definitions, conditions,
+> and assurance on which it depends.
 
 ---
 
 ## 20. Efficiency Model
 
-Extraction may be extremely expensive. The expected benefit is amortized execution.
+Foundational construction and proof discovery may be expensive. The expected benefit is
+amortized execution and permanent reuse of checked derivations.
 
 ### Before compilation
 
 ```txt
 every question
-    -> run a large model
-    -> reconstruct relevant distinctions
+    -> reinterpret terms
+    -> reconstruct relevant definitions
     -> regenerate reasoning
-    -> generate prose
+    -> trust an unaudited answer
 ```
 
 ### After compilation
 
 ```txt
-first encounter
-    -> expensive semantic crystallization
+first construction
+    -> define and check meanings
+    -> establish derivations
 
 later encounters
     -> symbol lookup
@@ -1337,16 +1495,16 @@ All caches remain derived from the canonical program.
 |---|---|---|
 | Model emits plausible but wrong code | Wrong candidate theory | Keep model untrusted; require checking and tests |
 | Valid proof formalizes the wrong sentence | False semantic confidence | Contrastive tests, paraphrase checking, source alignment |
-| New premise introduces hidden inconsistency | Unsound context | Prefer conservative changes; isolate premise; seek model/counterexample |
-| System improves score by deleting knowledge | Coherence theater | Coverage floors, held-out tests, retained evidence |
-| System over-splits contexts | Every conflict becomes vacuously isolated | Complexity penalty and context-necessity tests |
+| New premise introduces hidden inconsistency | Invalid accepted value | Fail construction unless the consistency obligation completes |
+| Definition conceals an axiom | Hidden commitment | Require conservative definition checking and dependency reports |
+| System treats equivalent extension as identical meaning | False semantic identity | Report the exact comparison relation established |
 | Quoted code escapes into execution | Claims become assertions | Stratified quotation and no general unquote |
 | Revision damages many theorems | Semantic regression | Dependency impact report and protected proof suite |
 | Theorem search times out | Missing answer | Return `TIMEOUT`, retain proof obligation |
 | Optimized backend disagrees with semantics | Incorrect fast result | Certificate checking or differential execution |
+| Backend verdict has no derivation | False proof claim | Mark it as a backend decision with unavailable support |
+| Backend assumptions remain implicit | Foundation changes silently | Publish the semantic contract of every bridge |
 | Program proposes weaker verifier | Self-authorization attack | Kernel outside ordinary revision authority |
-| Evidence is duplicated and treated as independent | Inflated support | Evidence lineage and dependency detection |
-| Self-generated data validates itself | Epistemic feedback loop | Separate generated, observed, and independent evidence |
 
 ---
 
@@ -1423,25 +1581,28 @@ autonomous but destroys the stable standard by which improvement is measured.
 proved theorems need not.
 
 **Decision:** Prioritize revisions that add conservative definitions and checked
-theorems. Treat premise changes as higher-risk empirical revisions.
+theorems. Treat every new premise as a change to the body's commitments that requires a
+completed consistency obligation.
 
-**Consequences:** The core can grow safely, but factual correction requires explicit
-belief revision rather than simple accumulation.
+**Consequences:** The body can grow safely through definitions and derivations. New
+foundational or conditional axioms pass through the accepted-body constructor.
 
 **Alternatives considered:** Accept every high-confidence model output as an axiom. This
 would produce rapid coverage but no defensible consistency guarantee.
 
-### ADR-006: Optimize coherence subject to coverage
+### ADR-006: Improve derivational coverage without weakening invariants
 
 **Status:** Proposed.
 
-**Context:** Consistency alone favors empty or artificially fragmented theories.
+**Context:** Consistency alone favors an empty body, while unrestricted accumulation
+destroys the consistency guarantee.
 
-**Decision:** Require coverage, held-out accuracy, and retained evidence while rewarding
-proof coverage, compression, and consistency.
+**Decision:** Increase checked conclusions, precise definitions, and useful concept
+comparisons while preserving consistency, dependency completeness, and quotation
+isolation.
 
-**Consequences:** Revision selection better approximates knowledge improvement. The
-quality policy remains a contestable component that must be versioned.
+**Consequences:** Progress cannot be manufactured by adding primitive names, hiding
+assumptions, or weakening the accepted type.
 
 ### ADR-007: Preserve every accepted version
 
@@ -1467,6 +1628,36 @@ semantics. Check their outputs or verify their compilation.
 
 **Consequences:** The system can become efficient without becoming a semantic
 hodgepodge. Compiler correctness becomes a substantial engineering obligation.
+
+### ADR-009: Represent accepted knowledge with a protected type
+
+**Status:** Proposed.
+
+**Context:** A structurally valid module can still contain commitments whose joint
+consequences are contradictory.
+
+**Decision:** Keep candidate IR separate from an immutable `AcceptedKnowledge` value.
+Only a constructor that completes all required semantic obligations may produce the
+accepted type.
+
+**Consequences:** Candidate and inconsistent theories remain inspectable, but ordinary
+application code cannot mistake them for accepted knowledge or mutate accepted knowledge
+unchecked.
+
+### ADR-010: Publish every backend's semantic and trust contract
+
+**Status:** Proposed.
+
+**Context:** Specialized reasoners may assume nonempty domains, open-world semantics,
+classical interpretation, or other principles not visible in the source syntax. Some
+return verdicts without proof artifacts.
+
+**Decision:** Every bridge declares its semantic assumptions, supported fragment,
+completeness boundary, trust status, and available dependency evidence. Backend decisions
+without checked certificates are never labeled kernel proofs.
+
+**Consequences:** OWL and future executors can accelerate supported reasoning without
+silently changing the foundation or overstating their assurance.
 
 ---
 
@@ -1506,22 +1697,54 @@ REPL queries
 
 The implementation should be deliberately small and auditable.
 
-### Phase 2: Claims, quotation, and evidence
+### Phase 2: Definitions and concept comparison
+
+Add:
+
+```txt
+exact definitions
+primitive concepts with explicit status
+definition dependency analysis
+normalization and equivalence checks
+subsumption, overlap, and exclusion queries
+definition examples, counterexamples, and boundary tests
+```
+
+Demonstrate that the framework distinguishes identical syntax, definitional equality,
+logical equivalence, shared extension, and unresolved meaning.
+
+### Phase 3: Consistency-preserving accepted knowledge
+
+Implement:
+
+```txt
+CandidateKnowledge
+AcceptedKnowledge with private state
+completed consistency obligations
+atomic checked construction
+rejection and incomplete-check diagnostics
+proof and backend assurance metadata
+```
+
+Demonstrate that explicit and derived contradictions cannot construct accepted values.
+
+### Phase 4: Quotation and safe comparison of rejected content
 
 Add:
 
 ```txt
 Quote<T>
 claim
-evidence
 hypothesis
+rejection records
 premise lineage
 stratification checks
 ```
 
-Demonstrate that opposing source claims do not imply an object-level contradiction.
+Demonstrate that opposing claims and invalid theories can be examined without becoming
+joint commitments.
 
-### Phase 3: Versioned self-revision
+### Phase 5: Versioned revision
 
 Implement:
 
@@ -1534,7 +1757,13 @@ transactional commit and rollback
 semantic regression tests
 ```
 
-### Phase 4: LLM crystallizer
+### Phase 6: Specialized semantic bridges
+
+Implement capability-checked compilation for useful decidable fragments, beginning with
+the OWL-aligned concept and relation fragment. Publish every bridge's semantic and trust
+contract and distinguish backend decisions from checked proofs.
+
+### Phase 7: Optional LLM proposer
 
 Use an LLM to propose language code from bounded natural-language material. Evaluate:
 
@@ -1547,7 +1776,7 @@ repair quality
 percentage of proposals accepted unchanged
 ```
 
-### Phase 5: Autonomous theory maintenance
+### Phase 8: Assisted theory maintenance
 
 Allow the system to propose and automatically commit low-risk changes:
 
@@ -1559,59 +1788,34 @@ proof refactoring
 safe symbol normalization
 ```
 
-Premise revision and concept restructuring require stronger evaluation gates.
-
-### Phase 6: Continual knowledge crystallization
-
-Run the full loop continuously:
-
-```txt
-new data
-    -> candidate knowledge
-    -> conflict and novelty analysis
-    -> theory patches
-    -> proof and empirical evaluation
-    -> accepted version
-```
-
-Measure whether the discrete program progressively answers more questions without the
-source model while maintaining or improving accuracy.
+Premise revision, concept restructuring, and autonomous admission remain outside this
+phase unless their construction obligations are as strong as the ordinary accepted-body
+boundary.
 
 ---
 
 ## 24. First Prototype
 
-The first prototype should prove the self-revision thesis, not attempt broad English.
-
-Use a compact taxonomy and ordinary-knowledge domain containing:
-
-```txt
-50 concepts
-20 relations
-100 premises
-50 source claims
-25 definitions
-50 theorems
-contradictory and obsolete reports
-held-out examples
-```
+The first prototype should prove the foundational construction thesis, not attempt broad
+English or empirical coverage.
 
 The demonstration should show:
 
-1. The LLM translates prose into candidate language code.
-2. The kernel rejects an ill-typed or invalid candidate.
-3. Conflicting reports coexist through quotation.
-4. New evidence breaks an overgeneral rule.
-5. The system proposes several repairs.
-6. A concept split or refined definition wins the declared evaluation.
-7. Dependent proofs are rebuilt.
-8. The new version answers the changed questions deterministically.
-9. The old version reproduces its original results exactly.
-10. Compiled queries no longer require the LLM.
+1. State a small set of explicit foundational axioms, beginning with existence and
+   noncontradiction.
+2. Construct several definitions from the available meanings.
+3. Derive substantive consequences with complete dependency chains.
+4. Compare related concepts by equivalence, implication, overlap, and exclusion.
+5. Reject an incoherent or circular definition.
+6. Reject an explicit contradiction.
+7. Reject a contradiction that appears only through inference.
+8. Keep a conditional result distinct from a foundational result.
+9. Compile an OWL-compatible fragment and report the bridge's assumptions and assurance.
+10. Revise one definition, rebuild affected derivations, and reproduce the prior version.
 
-The crucial metric is not how many sentences were ingested. It is whether a semantic
-revision produces a demonstrably better executable theory without weakening the proof
-contract.
+The crucial metric is whether each accepted conclusion is concrete, reproducible,
+noncontradictory, and fully connected to the principles and definitions from which it
+was constructed.
 
 ---
 
@@ -1621,54 +1825,56 @@ The project should treat these as its core unknowns:
 
 1. What is the smallest calculus expressive enough for human definitions without making
    proof checking or reflection unsafe?
-2. Which knowledge transformations can be proved conservative automatically?
-3. How should empirical support be represented without turning it into fuzzy truth?
-4. Can LLMs reliably generate useful concept splits and definition repairs from minimal
-   conflict sets?
-5. Which quality objective causes genuine explanatory improvement rather than deletion,
-   fragmentation, or overfitting?
-6. How much of a model's behavior can be replaced by the growing discrete program?
-7. Does knowledge compilation produce real runtime and energy savings after extraction
-   cost is amortized?
-8. Can natural-language explanations be constrained to say exactly what the proof
-   establishes?
-9. How stable are learned concepts across different source models and corpora?
-10. Can the system discover better primitives rather than merely accumulating rules in
-    a fixed ontology?
+2. Which principles concerning existence, identity, distinction, and noncontradiction
+   must be primitive, and which can be derived?
+3. Which definition forms can be proved conservative automatically?
+4. Which type and constructor boundaries are sufficient to make contradictory accepted
+   values unrepresentable?
+5. How should the system distinguish definitional equality, logical equivalence,
+   extension, and meaning?
+6. Which fragments admit complete consistency checking suitable for constructing
+   `AcceptedKnowledge`?
+7. Which proof or model certificates can reduce the trusted backend base?
+8. How should semantic assumptions such as OWL's domain and identity rules be represented
+   in dependency reports?
+9. Can natural-language explanations be constrained to say exactly what a proof or
+   backend decision establishes?
+10. Can the body discover better primitives rather than merely accumulating statements
+    within a fixed foundation?
 
 ---
 
 ## 26. Final Position
 
-The most coherent form of this project is one self-describing knowledge language with a
-small non-self-authorizing proof kernel.
+The most coherent form of this project is one canonical computational body of knowledge
+with a small non-self-authorizing proof kernel and protected consistency-preserving
+construction boundaries.
 
 Its long-term operation is:
 
 ```txt
-statistical knowledge proposes
-formal knowledge records
-counterexamples challenge
-theories revise
-proofs constrain
-versions preserve
-execution answers
+foundational axioms establish commitments
+definitions construct meanings
+proofs derive consequences
+types exclude invalid local states
+accepted constructors reject contradictions
+conditions delimit higher knowledge
+versions preserve revisions
+execution answers with dependencies
 ```
 
-The LLM contributes semantic breadth and creative hypothesis generation. The language
-contributes exact distinctions and reusable structure. The proof kernel contributes an
-unchanging standard of deductive validity. The revision system turns new evidence and
-contradictions into pressure for better definitions rather than into silent confusion.
+The language contributes exact distinctions and reusable constructions. The type and
+proof kernel make invalid constructions rejectable. Specialized reasoners execute
+decidable fragments under published semantic contracts. Immutable revisions permit the
+articulated foundation to improve without erasing its history.
 
-The system cannot guarantee that every empirical premise is true, that its theory is
-complete, or that a final perfect body of knowledge exists. It can aim for something
-concrete and progressively measurable:
+The concrete standard is:
 
-> Each accepted program version should explain at least as much independent evidence,
-> preserve or improve held-out accuracy, contain better-factored definitions, support
-> more checked conclusions, and disclose every assumption on which those conclusions
-> depend.
+> Each accepted version must preserve noncontradiction, derive more through explicit
+> foundations and definitions, distinguish necessary conclusions from those requiring
+> further conditions, and disclose the complete assurance and dependency chain of every
+> result.
 
-That is a plausible mechanism for moving from a large statistical approximation of
-human discourse toward an increasingly coherent, discrete, executable body of
-knowledge.
+This is the path from blurry philosophical language toward a concrete computational
+account of what reality necessarily permits and what follows when further structure is
+introduced.

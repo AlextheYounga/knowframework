@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::path::PathBuf;
 
 // ---------------------------------------------------------------------------
@@ -35,6 +36,7 @@ pub struct AxiomId(pub String);
 pub struct LanguageId(pub String);
 
 impl LanguageId {
+    #[must_use]
     pub fn english() -> Self {
         Self("en".to_string())
     }
@@ -80,8 +82,8 @@ pub struct SemanticVersion {
     pub patch: u32,
 }
 
-impl std::fmt::Display for SemanticVersion {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Display for SemanticVersion {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "{}.{}.{}", self.major, self.minor, self.patch)
     }
 }
@@ -126,8 +128,8 @@ pub struct RelatedInfo {
     pub location: Option<SourceLocation>,
 }
 
-impl std::fmt::Display for Severity {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Display for Severity {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
             Severity::Error => write!(f, "error"),
             Severity::Warning => write!(f, "warning"),
@@ -136,8 +138,8 @@ impl std::fmt::Display for Severity {
     }
 }
 
-impl std::fmt::Display for Diagnostic {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Display for Diagnostic {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "{}[{}]: {}", self.severity, self.code, self.message)?;
         if let Some(loc) = &self.location {
             if let Some(file) = &loc.file {
@@ -163,11 +165,13 @@ impl Diagnostic {
         Self { severity: Severity::Warning, code, message: message.into(), location: None, related: vec![] }
     }
 
+    #[must_use]
     pub fn with_file(mut self, path: PathBuf) -> Self {
         self.location.get_or_insert(SourceLocation { file: None, data_path: None }).file = Some(path);
         self
     }
 
+    #[must_use]
     pub fn with_path(mut self, path: impl Into<String>) -> Self {
         self.location.get_or_insert(SourceLocation { file: None, data_path: None }).data_path = Some(path.into());
         self
