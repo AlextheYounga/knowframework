@@ -3,6 +3,28 @@
 The corpus should contain precise claims that the reasoner can interpret, not
 an accumulation of plausible-sounding text.
 
+## Philosophical Standard
+
+The corpus exists to deepen a shared account of the world, not to demonstrate
+the schema. Before accepting a record, ask:
+
+- What does this concept or claim mean?
+- What grounds its acceptance?
+- In what context does it hold?
+- What alternatives or objections must remain visible?
+- What would justify revising it?
+
+Formal validity answers whether a conclusion follows from stated commitments.
+It does not establish that the commitments are true or that their concepts are
+adequate. Preserve evidence, interpretation, and disagreement rather than
+letting a successful proof stand in for them.
+
+A primitive concept is an explicit foundational commitment of a theory, not a
+convenient substitute for work left undone. A definition should clarify what a
+concept is, provenance should explain how it entered the corpus, and every
+accepted record should contribute substantive understanding. Keep parser
+examples and test-only vocabulary in fixtures rather than the accepted corpus.
+
 ## Model Concepts, Not Words
 
 A concept is a canonical meaning with a stable ID. A word is a language-level

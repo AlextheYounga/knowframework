@@ -14,6 +14,13 @@ working example.
 ## Non-Negotiable Rules
 
 - Treat generated knowledge as a proposal, not as accepted fact.
+- Never add boilerplate, placeholders, dummy values, generic provenance, or
+  schema demonstrations to the accepted corpus. Every stored value must carry
+  supported meaning.
+- Do not admit incomplete records. Keep knowledge that cannot yet be populated
+  completely and supported in a proposal or explicit backlog outside the
+  accepted corpus. `Unknown` is a reasoning result, not permission to accept
+  unfinished data.
 - Never invent evidence, provenance, identifiers, definitions, or relations.
 - Use stable, namespaced IDs such as `geometry::square`.
 - Keep concepts separate from words. Concepts belong in an ontology module;
