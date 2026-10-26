@@ -1,4 +1,4 @@
-// Example knowledge proposal: adds "pentagon" beneath polygon.
+// Knowledge proposal: defines a pentagon as a five-sided polygon.
 // Encoding: RON. Schema: KnowledgeProposal (know-admission).
 //
 // Run:  know admit knowledge/geometry/concepts.know \
@@ -8,24 +8,50 @@ KnowledgeProposal(
     proposal_id: "geometry-pentagon-001",
     proposed_concepts: [
         ConceptRecordSource(
+            id: "geometry::exactly_five_sided",
+            label: "having exactly five sides",
+            definition: None,
+            grounding: Some(Primitive),
+            status: Primitive,
+            provenance: Some((
+                source: LlmGenerated(
+                    model: "openai/gpt-5.6-sol",
+                    run_id: "ses_e86c25126ffeLl0kyLbbnL4t1L",
+                ),
+                timestamp: Some("2026-10-26T12:33:59-05:00"),
+                notes: Some("Foundational cardinal characteristic used to define pentagons."),
+            )),
+        ),
+        ConceptRecordSource(
             id: "geometry::pentagon",
             label: "pentagon",
             alternate_labels: ["five-sided polygon"],
-            definition: None,
+            definition: Some(And([
+                Named("geometry::polygon"),
+                Named("geometry::exactly_five_sided"),
+            ])),
             grounding: Some(StructuralDefinition),
-            status: Declared,
-            provenance: None,
+            status: Defined,
+            provenance: Some((
+                source: LlmGenerated(
+                    model: "openai/gpt-5.6-sol",
+                    run_id: "ses_e86c25126ffeLl0kyLbbnL4t1L",
+                ),
+                timestamp: Some("2026-10-26T12:33:59-05:00"),
+                notes: Some("A polygon having exactly five sides."),
+            )),
         ),
     ],
-    proposed_axioms: [
-        SubclassOf(
-            child: Named("geometry::pentagon"),
-            parent: Named("geometry::polygon"),
+    source_evidence: [
+        SourceEvidence(
+            kind: HumanAnnotation,
+            text: "five-sided polygon",
+            reference: Some("git:305a0de4abbeec67bfc8f10e798ed0a5062d0d06:knowledge/geometry/proposals/pentagon.know"),
         ),
     ],
     generated_by: (
-        kind: Human,
-        model_id: None,
-        run_id: "manual-001",
+        kind: Llm,
+        model_id: Some("openai/gpt-5.6-sol"),
+        run_id: "ses_e86c25126ffeLl0kyLbbnL4t1L",
     ),
 )

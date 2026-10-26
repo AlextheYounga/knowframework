@@ -18,12 +18,12 @@ RegressionManifest(
             expected: Entailed,
         ),
         RegressionCheckSource(
-            description: "red squares remain open with respect to size",
-            proposition: SubclassOf(
-                child: And([Named("geometry::red"), Named("geometry::square")]),
-                parent: Named("geometry::large"),
+            description: "triangles and quadrilaterals remain disjoint",
+            proposition: Disjoint(
+                left: Named("geometry::triangle"),
+                right: Named("geometry::quadrilateral"),
             ),
-            expected: Unknown,
+            expected: Entailed,
         ),
     ],
 )
