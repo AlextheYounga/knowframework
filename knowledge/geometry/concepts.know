@@ -1,14 +1,10 @@
-// Elementary geometry knowledge module.
+// Elementary plane geometry.
 // Encoding: RON. Schema: KnowledgeModuleSource (know-ontology::source).
 //
-// Concepts are declared here; their subclass relationships are expressed as
-// SubclassOf axioms so the reasoner can compute transitive closure.
-//
-// Required verdicts to pass before this module is considered correct:
-//   Square subclass Rectangle        → Entailed
-//   Square subclass Polygon          → Entailed
-//   Square AND Circle satisfiable    → Contradicted
-//   Red AND Square subclass Large    → Unknown
+// This module treats a small vocabulary as foundational and defines the remaining
+// concepts from it. A primitive is an explicit starting commitment of this theory;
+// it is not an unfinished record. Definitions state what each derived concept means,
+// while axioms record relationships not already supplied by those definitions.
 
 KnowledgeModuleSource(
     id: "geometry",
@@ -18,151 +14,291 @@ KnowledgeModuleSource(
         ConceptRecordSource(
             id: "geometry::spatial_object",
             label: "spatial object",
-            alternate_labels: [],
             definition: None,
-            grounding: Some(StructuralDefinition),
+            grounding: Some(Primitive),
             status: Primitive,
-            provenance: None,
+            provenance: Some((
+                source: HumanAuthored(author: Some("Alex Younger")),
+                timestamp: Some("2026-07-23T14:45:49-05:00"),
+                notes: Some("Foundational subject of spatial classification in this module."),
+            )),
         ),
         ConceptRecordSource(
             id: "geometry::figure",
             label: "figure",
-            alternate_labels: [],
+            alternate_labels: ["geometric figure"],
             definition: None,
-            grounding: Some(StructuralDefinition),
-            status: Declared,
-            provenance: None,
+            grounding: Some(Primitive),
+            status: Primitive,
+            provenance: Some((
+                source: HumanAuthored(author: Some("Alex Younger")),
+                timestamp: Some("2026-07-23T14:45:49-05:00"),
+                notes: Some("Foundational object of elementary plane geometry."),
+            )),
+        ),
+        ConceptRecordSource(
+            id: "geometry::closed_boundary",
+            label: "having a closed boundary",
+            definition: None,
+            grounding: Some(Primitive),
+            status: Primitive,
+            provenance: Some((
+                source: LlmGenerated(
+                    model: "openai/gpt-5.6-sol",
+                    run_id: "ses_e86c25126ffeLl0kyLbbnL4t1L",
+                ),
+                timestamp: Some("2026-10-26T12:33:59-05:00"),
+                notes: Some("Foundational structural characteristic used to define closed figures."),
+            )),
+        ),
+        ConceptRecordSource(
+            id: "geometry::straight_sided",
+            label: "straight-sided",
+            definition: None,
+            grounding: Some(Primitive),
+            status: Primitive,
+            provenance: Some((
+                source: LlmGenerated(
+                    model: "openai/gpt-5.6-sol",
+                    run_id: "ses_e86c25126ffeLl0kyLbbnL4t1L",
+                ),
+                timestamp: Some("2026-10-26T12:33:59-05:00"),
+                notes: Some("Foundational structural characteristic used to distinguish polygons."),
+            )),
+        ),
+        ConceptRecordSource(
+            id: "geometry::exactly_three_sided",
+            label: "having exactly three sides",
+            definition: None,
+            grounding: Some(Primitive),
+            status: Primitive,
+            provenance: Some((
+                source: LlmGenerated(
+                    model: "openai/gpt-5.6-sol",
+                    run_id: "ses_e86c25126ffeLl0kyLbbnL4t1L",
+                ),
+                timestamp: Some("2026-10-26T12:33:59-05:00"),
+                notes: Some("Foundational cardinal characteristic used to define triangles."),
+            )),
+        ),
+        ConceptRecordSource(
+            id: "geometry::exactly_four_sided",
+            label: "having exactly four sides",
+            definition: None,
+            grounding: Some(Primitive),
+            status: Primitive,
+            provenance: Some((
+                source: LlmGenerated(
+                    model: "openai/gpt-5.6-sol",
+                    run_id: "ses_e86c25126ffeLl0kyLbbnL4t1L",
+                ),
+                timestamp: Some("2026-10-26T12:33:59-05:00"),
+                notes: Some("Foundational cardinal characteristic used to define quadrilaterals."),
+            )),
+        ),
+        ConceptRecordSource(
+            id: "geometry::right_angled",
+            label: "right-angled",
+            definition: None,
+            grounding: Some(Primitive),
+            status: Primitive,
+            provenance: Some((
+                source: LlmGenerated(
+                    model: "openai/gpt-5.6-sol",
+                    run_id: "ses_e86c25126ffeLl0kyLbbnL4t1L",
+                ),
+                timestamp: Some("2026-10-26T12:33:59-05:00"),
+                notes: Some("Here, every interior angle is a right angle."),
+            )),
+        ),
+        ConceptRecordSource(
+            id: "geometry::equilateral",
+            label: "equilateral",
+            definition: None,
+            grounding: Some(Primitive),
+            status: Primitive,
+            provenance: Some((
+                source: LlmGenerated(
+                    model: "openai/gpt-5.6-sol",
+                    run_id: "ses_e86c25126ffeLl0kyLbbnL4t1L",
+                ),
+                timestamp: Some("2026-10-26T12:33:59-05:00"),
+                notes: Some("Here, every side has equal length."),
+            )),
+        ),
+        ConceptRecordSource(
+            id: "geometry::constant_radial_distance",
+            label: "having constant radial distance",
+            definition: None,
+            grounding: Some(Primitive),
+            status: Primitive,
+            provenance: Some((
+                source: LlmGenerated(
+                    model: "openai/gpt-5.6-sol",
+                    run_id: "ses_e86c25126ffeLl0kyLbbnL4t1L",
+                ),
+                timestamp: Some("2026-10-26T12:33:59-05:00"),
+                notes: Some("Every boundary point is equidistant from a common center."),
+            )),
         ),
         ConceptRecordSource(
             id: "geometry::closed_figure",
             label: "closed figure",
-            alternate_labels: [],
-            definition: None,
+            definition: Some(And([
+                Named("geometry::figure"),
+                Named("geometry::closed_boundary"),
+            ])),
             grounding: Some(StructuralDefinition),
-            status: Declared,
-            provenance: None,
+            status: Defined,
+            provenance: Some((
+                source: LlmGenerated(
+                    model: "openai/gpt-5.6-sol",
+                    run_id: "ses_e86c25126ffeLl0kyLbbnL4t1L",
+                ),
+                timestamp: Some("2026-10-26T12:33:59-05:00"),
+                notes: Some("A figure whose boundary closes upon itself."),
+            )),
         ),
         ConceptRecordSource(
             id: "geometry::polygon",
             label: "polygon",
-            alternate_labels: [],
-            definition: None,
+            definition: Some(And([
+                Named("geometry::closed_figure"),
+                Named("geometry::straight_sided"),
+            ])),
             grounding: Some(StructuralDefinition),
-            status: Declared,
-            provenance: None,
-        ),
-        ConceptRecordSource(
-            id: "geometry::quadrilateral",
-            label: "quadrilateral",
-            alternate_labels: [],
-            definition: None,
-            grounding: Some(StructuralDefinition),
-            status: Declared,
-            provenance: None,
+            status: Defined,
+            provenance: Some((
+                source: LlmGenerated(
+                    model: "openai/gpt-5.6-sol",
+                    run_id: "ses_e86c25126ffeLl0kyLbbnL4t1L",
+                ),
+                timestamp: Some("2026-10-26T12:33:59-05:00"),
+                notes: Some("A closed figure bounded by straight sides."),
+            )),
         ),
         ConceptRecordSource(
             id: "geometry::triangle",
             label: "triangle",
-            alternate_labels: [],
-            definition: None,
+            alternate_labels: ["three-sided polygon"],
+            definition: Some(And([
+                Named("geometry::polygon"),
+                Named("geometry::exactly_three_sided"),
+            ])),
             grounding: Some(StructuralDefinition),
-            status: Declared,
-            provenance: None,
+            status: Defined,
+            provenance: Some((
+                source: LlmGenerated(
+                    model: "openai/gpt-5.6-sol",
+                    run_id: "ses_e86c25126ffeLl0kyLbbnL4t1L",
+                ),
+                timestamp: Some("2026-10-26T12:33:59-05:00"),
+                notes: Some("A polygon having exactly three sides."),
+            )),
+        ),
+        ConceptRecordSource(
+            id: "geometry::quadrilateral",
+            label: "quadrilateral",
+            alternate_labels: ["four-sided polygon"],
+            definition: Some(And([
+                Named("geometry::polygon"),
+                Named("geometry::exactly_four_sided"),
+            ])),
+            grounding: Some(StructuralDefinition),
+            status: Defined,
+            provenance: Some((
+                source: LlmGenerated(
+                    model: "openai/gpt-5.6-sol",
+                    run_id: "ses_e86c25126ffeLl0kyLbbnL4t1L",
+                ),
+                timestamp: Some("2026-10-26T12:33:59-05:00"),
+                notes: Some("A polygon having exactly four sides."),
+            )),
         ),
         ConceptRecordSource(
             id: "geometry::rectangle",
             label: "rectangle",
-            alternate_labels: [],
-            definition: None,
+            alternate_labels: ["right-angled quadrilateral"],
+            definition: Some(And([
+                Named("geometry::quadrilateral"),
+                Named("geometry::right_angled"),
+            ])),
             grounding: Some(StructuralDefinition),
-            status: Declared,
-            provenance: None,
+            status: Defined,
+            provenance: Some((
+                source: LlmGenerated(
+                    model: "openai/gpt-5.6-sol",
+                    run_id: "ses_e86c25126ffeLl0kyLbbnL4t1L",
+                ),
+                timestamp: Some("2026-10-26T12:33:59-05:00"),
+                notes: Some("A quadrilateral having four right angles."),
+            )),
         ),
         ConceptRecordSource(
             id: "geometry::rhombus",
             label: "rhombus",
-            alternate_labels: [],
-            definition: None,
+            alternate_labels: ["equilateral quadrilateral"],
+            definition: Some(And([
+                Named("geometry::quadrilateral"),
+                Named("geometry::equilateral"),
+            ])),
             grounding: Some(StructuralDefinition),
-            status: Declared,
-            provenance: None,
+            status: Defined,
+            provenance: Some((
+                source: LlmGenerated(
+                    model: "openai/gpt-5.6-sol",
+                    run_id: "ses_e86c25126ffeLl0kyLbbnL4t1L",
+                ),
+                timestamp: Some("2026-10-26T12:33:59-05:00"),
+                notes: Some("A quadrilateral whose four sides have equal length."),
+            )),
         ),
         ConceptRecordSource(
             id: "geometry::square",
             label: "square",
-            alternate_labels: ["equilateral rectangle"],
+            alternate_labels: ["equilateral rectangle", "right-angled rhombus"],
             definition: Some(And([
                 Named("geometry::rectangle"),
                 Named("geometry::rhombus"),
             ])),
             grounding: Some(StructuralDefinition),
             status: Defined,
-            provenance: None,
+            provenance: Some((
+                source: HumanAuthored(author: Some("Alex Younger")),
+                timestamp: Some("2026-07-23T14:45:49-05:00"),
+                notes: Some("A quadrilateral having four equal sides and four right angles."),
+            )),
         ),
         ConceptRecordSource(
             id: "geometry::circle",
             label: "circle",
-            alternate_labels: [],
-            definition: None,
+            definition: Some(And([
+                Named("geometry::closed_figure"),
+                Named("geometry::constant_radial_distance"),
+            ])),
             grounding: Some(StructuralDefinition),
-            status: Declared,
-            provenance: None,
-        ),
-        ConceptRecordSource(
-            id: "geometry::red",
-            label: "red",
-            alternate_labels: [],
-            definition: None,
-            grounding: Some(MeasurementClass),
-            status: Primitive,
-            provenance: None,
-        ),
-        ConceptRecordSource(
-            id: "geometry::large",
-            label: "large",
-            alternate_labels: [],
-            definition: None,
-            grounding: Some(MeasurementClass),
-            status: Primitive,
-            provenance: None,
+            status: Defined,
+            provenance: Some((
+                source: LlmGenerated(
+                    model: "openai/gpt-5.6-sol",
+                    run_id: "ses_e86c25126ffeLl0kyLbbnL4t1L",
+                ),
+                timestamp: Some("2026-10-26T12:33:59-05:00"),
+                notes: Some("A closed figure whose boundary points are equidistant from a common center."),
+            )),
         ),
     ],
-
-    relations: [],
-    entities: [],
 
     axioms: [
         SubclassOf(
             child: Named("geometry::figure"),
             parent: Named("geometry::spatial_object"),
         ),
-        SubclassOf(
-            child: Named("geometry::closed_figure"),
-            parent: Named("geometry::figure"),
-        ),
-        SubclassOf(
-            child: Named("geometry::polygon"),
-            parent: Named("geometry::closed_figure"),
-        ),
-        SubclassOf(
-            child: Named("geometry::quadrilateral"),
-            parent: Named("geometry::polygon"),
-        ),
-        SubclassOf(
-            child: Named("geometry::triangle"),
-            parent: Named("geometry::polygon"),
-        ),
-        SubclassOf(
-            child: Named("geometry::rectangle"),
-            parent: Named("geometry::quadrilateral"),
-        ),
-        SubclassOf(
-            child: Named("geometry::rhombus"),
-            parent: Named("geometry::quadrilateral"),
-        ),
-        SubclassOf(
-            child: Named("geometry::circle"),
-            parent: Named("geometry::closed_figure"),
+        DisjointClasses(
+            classes: [
+                Named("geometry::exactly_three_sided"),
+                Named("geometry::exactly_four_sided"),
+            ],
         ),
         DisjointClasses(
             classes: [
