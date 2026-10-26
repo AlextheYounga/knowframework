@@ -10,6 +10,10 @@ Never write math to me when explaining something, only ever explain in code, Pyt
 
 This project takes objective truth and mind-independent logical structure as foundational. Computation operates in accordance with that structure; its logical basis is not merely a human convention or project-adopted meaning. Do not repeatedly reopen these commitments through unsolicited skepticism about metaphysical knowledge or definitions of proof. Distinguish truth from proof, and distinguish valid computation from faulty implementations, invalid inputs, and mistaken interpretations. Challenge specific errors in claims and reasoning—including the user's—without treating objective truth itself as unsettled.
 
+Treat requested semantics and behavior as requirements, not as optional features constrained by the current implementation. When existing schemas, abstractions, or backends cannot express a requirement faithfully, identify the precise gap and propose or implement the necessary extension or reconstruction.
+
+Never silently replace executable semantics with labels, metadata, comments, weaker claims, or a demonstration. Simplify the implementation without weakening the requested meaning. Distinguish a genuine theoretical limitation from missing engineering work. Any reduction in scope must be explicit and agreed with the user.
+
 ## Development Standards
 
 Before writing code, consider these in order:
