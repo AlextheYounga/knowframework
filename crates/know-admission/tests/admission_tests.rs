@@ -1,3 +1,5 @@
+#![expect(clippy::expect_used, clippy::panic)]
+
 use fixtures::geometry::geometry_source;
 use know_admission::{
     AdmissionDecision, ExpectedVerdict, GeneratorIdentity, GeneratorKind, KnowledgeProposal, Pipeline, RegressionCheck,
@@ -173,8 +175,8 @@ fn regression_failure_is_rejected_with_verdict_diff() {
     );
     assert_eq!(record.changed_verdicts.len(), 1);
     let diff = &record.changed_verdicts[0];
-    assert_eq!(diff.before.as_ref().map(|v| v.kind()), Some("Entailed"));
-    assert_eq!(diff.after.as_ref().map(|v| v.kind()), Some("Contradicted"));
+    assert_eq!(diff.before.as_ref().map(know_reasoner::Verdict::kind), Some("Entailed"));
+    assert_eq!(diff.after.as_ref().map(know_reasoner::Verdict::kind), Some("Contradicted"));
 }
 
 #[test]

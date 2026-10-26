@@ -5,6 +5,7 @@
 
 use know_core::{AxiomId, ConceptId, EntityId, Provenance, RelationId};
 use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use crate::source::{ConceptStatus, Grounding};
 
@@ -27,16 +28,19 @@ impl ConceptExpr {
         Self::Named(ConceptId(id.into()))
     }
 
+    #[must_use]
     pub fn and(exprs: Vec<ConceptExpr>) -> Self {
         Self::And(exprs)
     }
 
+    #[must_use]
     pub fn or(exprs: Vec<ConceptExpr>) -> Self {
         Self::Or(exprs)
     }
 
     // Deliberately named after the DL complement operator, not std::ops::Not.
-    #[allow(clippy::should_implement_trait)]
+    #[expect(clippy::should_implement_trait)]
+    #[must_use]
     pub fn not(expr: ConceptExpr) -> Self {
         Self::Not(Box::new(expr))
     }
@@ -67,9 +71,9 @@ impl ConceptExpr {
     }
 }
 
-impl std::fmt::Display for ConceptExpr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        fn join(f: &mut std::fmt::Formatter<'_>, parts: &[ConceptExpr], op: &str) -> std::fmt::Result {
+impl Display for ConceptExpr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        fn join(f: &mut Formatter<'_>, parts: &[ConceptExpr], op: &str) -> FmtResult {
             write!(f, "(")?;
             for (i, p) in parts.iter().enumerate() {
                 if i > 0 {
@@ -162,14 +166,17 @@ pub struct KnowledgeModule {
 }
 
 impl KnowledgeModule {
+    #[must_use]
     pub fn concept(&self, id: &ConceptId) -> Option<&Concept> {
         self.concepts.iter().find(|c| &c.id == id)
     }
 
+    #[must_use]
     pub fn relation(&self, id: &RelationId) -> Option<&Relation> {
         self.relations.iter().find(|r| &r.id == id)
     }
 
+    #[must_use]
     pub fn entity(&self, id: &EntityId) -> Option<&Entity> {
         self.entities.iter().find(|e| &e.id == id)
     }

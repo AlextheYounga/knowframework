@@ -14,7 +14,7 @@
 //! Semantic validation (satisfiability, consistency, disjointness
 //! propagation) is the responsibility of `know-reasoner`, not this module.
 
-use std::collections::{HashMap, HashSet};
+use std::{collections::{HashMap, HashSet}, iter};
 
 use know_core::{AxiomId, ConceptId, Diagnostic, EntityId, ModuleId, Provenance, RelationId, codes};
 use thiserror::Error;
@@ -38,6 +38,7 @@ pub enum CompileError {
 }
 
 impl CompileError {
+    #[must_use]
     pub fn diagnostics(&self) -> &[Diagnostic] {
         match self {
             CompileError::UnsupportedSchemaVersion { .. } => &[],
@@ -57,6 +58,11 @@ struct Symbols {
 /// Returns `Err` on hard errors (wrong schema version or any Error-severity
 /// diagnostic). All diagnostics are collected before returning so a single
 /// compile reports every problem at once.
+///
+/// # Errors
+///
+/// Returns [`CompileError::UnsupportedSchemaVersion`] for an unsupported
+/// schema, or [`CompileError::ValidationErrors`] when validation finds errors.
 pub fn compile(source: KnowledgeModuleSource) -> Result<KnowledgeModule, CompileError> {
     if source.schema_version != SUPPORTED_SCHEMA_VERSION {
         return Err(CompileError::UnsupportedSchemaVersion {
@@ -279,32 +285,31 @@ fn resolve_axiom(
 // "cyclic" (mutual subclass = equivalence).
 // ---------------------------------------------------------------------------
 
-fn detect_definition_cycles(concepts: &[Concept], out: &mut Vec<Diagnostic>) {
-    let defined: HashMap<&ConceptId, &ConceptExpr> =
-        concepts.iter().filter_map(|c| c.definition.as_ref().map(|d| (&c.id, d))).collect();
+#[derive(Clone, Copy, PartialEq)]
+enum Mark {
+    InProgress,
+    Done,
+}
 
-    #[derive(Clone, Copy, PartialEq)]
-    enum Mark {
-        InProgress,
-        Done,
-    }
+struct CycleDetector<'a> {
+    defined: &'a HashMap<&'a ConceptId, &'a ConceptExpr>,
+    marks: HashMap<&'a ConceptId, Mark>,
+    stack: Vec<&'a ConceptId>,
+    out: &'a mut Vec<Diagnostic>,
+}
 
-    let mut marks: HashMap<&ConceptId, Mark> = HashMap::new();
-
-    fn visit<'a>(
-        id: &'a ConceptId,
-        defined: &HashMap<&'a ConceptId, &'a ConceptExpr>,
-        marks: &mut HashMap<&'a ConceptId, Mark>,
-        stack: &mut Vec<&'a ConceptId>,
-        out: &mut Vec<Diagnostic>,
-    ) {
-        match marks.get(id) {
+impl<'a> CycleDetector<'a> {
+    fn visit(&mut self, id: &'a ConceptId) {
+        match self.marks.get(id) {
             Some(Mark::Done) => return,
             Some(Mark::InProgress) => {
-                let cycle_start = stack.iter().position(|c| *c == id).unwrap_or(0);
-                let cycle: Vec<&str> =
-                    stack[cycle_start..].iter().map(|c| c.0.as_str()).chain(std::iter::once(id.0.as_str())).collect();
-                out.push(Diagnostic::error(
+                let cycle_start = self.stack.iter().position(|c| *c == id).unwrap_or(0);
+                let cycle: Vec<&str> = self.stack[cycle_start..]
+                    .iter()
+                    .map(|c| c.0.as_str())
+                    .chain(iter::once(id.0.as_str()))
+                    .collect();
+                self.out.push(Diagnostic::error(
                     codes::CIRCULAR_DEFINITION,
                     format!("circular definition: {}", cycle.join(" -> ")),
                 ));
@@ -313,31 +318,34 @@ fn detect_definition_cycles(concepts: &[Concept], out: &mut Vec<Diagnostic>) {
             None => {}
         }
 
-        let Some(expr) = defined.get(id) else {
-            marks.insert(id, Mark::Done);
+        let Some(expr) = self.defined.get(id).copied() else {
+            self.marks.insert(id, Mark::Done);
             return;
         };
 
-        marks.insert(id, Mark::InProgress);
-        stack.push(id);
+        self.marks.insert(id, Mark::InProgress);
+        self.stack.push(id);
 
         let mut referenced = vec![];
         expr.named_concepts(&mut referenced);
         for r in &referenced {
             // Resolve the reference back to a key owned by `defined`.
-            if let Some((key, _)) = defined.get_key_value(r) {
-                visit(key, defined, marks, stack, out);
+            if let Some((key, _)) = self.defined.get_key_value(r) {
+                self.visit(key);
             }
         }
 
-        stack.pop();
-        marks.insert(id, Mark::Done);
-    }
-
-    let keys: Vec<&ConceptId> = defined.keys().copied().collect();
-    for id in keys {
-        let mut stack = vec![];
-        visit(id, &defined, &mut marks, &mut stack, out);
+        self.stack.pop();
+        self.marks.insert(id, Mark::Done);
     }
 }
 
+fn detect_definition_cycles(concepts: &[Concept], out: &mut Vec<Diagnostic>) {
+    let defined: HashMap<&ConceptId, &ConceptExpr> =
+        concepts.iter().filter_map(|c| c.definition.as_ref().map(|d| (&c.id, d))).collect();
+    let mut detector = CycleDetector { defined: &defined, marks: HashMap::new(), stack: vec![], out };
+    let keys: Vec<&ConceptId> = defined.keys().copied().collect();
+    for id in keys {
+        detector.visit(id);
+    }
+}

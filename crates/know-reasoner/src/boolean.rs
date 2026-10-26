@@ -3,10 +3,10 @@
 //! ## Why SAT is sound and complete here
 //!
 //! Without relational restrictions, ALC constraints on distinct individuals
-//! are independent: a TBox axiom `C SUBCLASS_OF D` constrains each domain
+//! are independent: a `TBox` axiom `C SUBCLASS_OF D` constrains each domain
 //! element separately, so a concept expression `C` is satisfiable w.r.t. the
-//! TBox iff there is a single truth assignment to named concepts satisfying
-//! (internalized TBox) AND C. Each propositional model corresponds to one
+//! `TBox` iff there is a single truth assignment to named concepts satisfying
+//! (internalized `TBox`) AND C. Each propositional model corresponds to one
 //! domain element's concept membership pattern, and any set of such patterns
 //! assembles into a DL model. Hence:
 //!
@@ -20,7 +20,7 @@
 //! ## Verdict semantics
 //!
 //! - `SubclassOf`/`Equivalent`/`Disjoint`: `Entailed` by refutation;
-//!   `Contradicted` when an ABox entity is a provable counterexample;
+//!   `Contradicted` when an `ABox` entity is a provable counterexample;
 //!   otherwise `Unknown` with a countermodel in the explanation.
 //! - `Satisfiable`: `Entailed` = provably satisfiable (a witness model
 //!   exists), `Contradicted` = provably unsatisfiable. Never `Unknown`:
@@ -61,7 +61,7 @@ pub(super) struct TranslatedAxiom {
 // ---------------------------------------------------------------------------
 
 pub struct BooleanReasoner {
-    /// Internalized TBox: subclass/equivalence/disjointness axioms plus
+    /// Internalized `TBox`: subclass/equivalence/disjointness axioms plus
     /// definitional equivalences.
     pub(super) tbox: Vec<TranslatedAxiom>,
     /// Per-entity class assertions (positive and negative).
@@ -77,6 +77,7 @@ pub struct BooleanReasoner {
 }
 
 impl BooleanReasoner {
+    #[must_use]
     pub fn new(module: &KnowledgeModule) -> Self {
         let mut vars = HashMap::new();
         let mut var_names = vec![];

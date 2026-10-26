@@ -1,6 +1,6 @@
 use know_ontology::{Axiom, ConceptExpr, KnowledgeModule};
 
-use crate::iri::{concept_iri, entity_iri, relation_iri};
+use crate::iri::{OWL_NOTHING, OWL_THING, concept_iri, entity_iri, relation_iri};
 
 pub(crate) fn adapt(module: &KnowledgeModule) -> String {
     let mut lines = vec!["Ontology(".to_string()];
@@ -66,16 +66,16 @@ fn render_expr_nnf(expr: &ConceptExpr, negated: bool) -> String {
         (ConceptExpr::Named(id), false) => format!("<{}>", concept_iri(id)),
         (ConceptExpr::Named(id), true) => format!("ObjectComplementOf(<{}>)", concept_iri(id)),
         (ConceptExpr::And(parts), false) => {
-            render_boolean("ObjectIntersectionOf", "http://www.w3.org/2002/07/owl#Thing", parts, false)
+            render_boolean("ObjectIntersectionOf", OWL_THING, parts, false)
         }
         (ConceptExpr::And(parts), true) => {
-            render_boolean("ObjectUnionOf", "http://www.w3.org/2002/07/owl#Nothing", parts, true)
+            render_boolean("ObjectUnionOf", OWL_NOTHING, parts, true)
         }
         (ConceptExpr::Or(parts), false) => {
-            render_boolean("ObjectUnionOf", "http://www.w3.org/2002/07/owl#Nothing", parts, false)
+            render_boolean("ObjectUnionOf", OWL_NOTHING, parts, false)
         }
         (ConceptExpr::Or(parts), true) => {
-            render_boolean("ObjectIntersectionOf", "http://www.w3.org/2002/07/owl#Thing", parts, true)
+            render_boolean("ObjectIntersectionOf", OWL_THING, parts, true)
         }
         (ConceptExpr::Not(inner), negated) => render_expr_nnf(inner, !negated),
         (ConceptExpr::Exists { relation, filler }, false) => {

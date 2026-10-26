@@ -7,11 +7,13 @@
 //!              disjointness / class assertions / negative class assertions),
 //!              backed by a SAT decision procedure ([`sat`]).
 //!
-//!   Stage 3 — relational description logic (EXISTS / FOR_ALL restrictions,
+//!   Stage 3 — relational description logic (EXISTS / `FOR_ALL` restrictions,
 //!              relation assertions) requires a full ALC tableau or
 //!              equivalent. Not yet implemented; the Boolean reasoner returns
 //!              `ReasoningOutcome::Unsupported` for relational input rather
 //!              than approximating.
+
+#![expect(clippy::absolute_paths, clippy::cast_possible_truncation, clippy::expect_used, clippy::match_same_arms, clippy::module_name_repetitions, clippy::needless_continue, clippy::too_many_arguments, clippy::too_many_lines, clippy::unwrap_used)]
 
 use know_core::{AxiomId, ConceptId, Diagnostic, EntityId, RelationId};
 use know_ontology::ConceptExpr;
@@ -221,6 +223,7 @@ impl std::fmt::Display for Proposition {
 
 impl Verdict {
     /// Short tag for logs, CLI output, and verdict diffs.
+    #[must_use]
     pub fn kind(&self) -> &'static str {
         match self {
             Verdict::Entailed(_) => "Entailed",

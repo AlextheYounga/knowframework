@@ -9,6 +9,8 @@
 //! Confidence scores are allowed here; they must not bleed into concept
 //! semantics or influence what the reasoner takes to be logically true.
 
+#![expect(clippy::absolute_paths, clippy::cast_precision_loss, clippy::missing_errors_doc)]
+
 use know_core::{ConceptId, LanguageId, Provenance};
 use serde::{Deserialize, Serialize};
 
@@ -138,6 +140,7 @@ pub struct ContextResolver {
 }
 
 impl ContextResolver {
+    #[must_use]
     pub fn new(lexicon: LexicalModule) -> Self {
         Self { lexicon }
     }
@@ -222,6 +225,7 @@ impl Resolver for ContextResolver {
 // ---------------------------------------------------------------------------
 
 #[cfg(test)]
+#[expect(clippy::panic)]
 mod tests {
     use super::*;
 

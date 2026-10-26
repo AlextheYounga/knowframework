@@ -15,7 +15,10 @@ const SOURCE_DIRS: &[&str] = &["crates"];
 const IGNORE_DIRS: &[&str] = &["target", "vendor", "node_modules", ".git"];
 
 fn workspace_root() -> &'static Path {
-    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap()
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| Path::new("."))
 }
 
 #[derive(Debug)]

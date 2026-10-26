@@ -1,28 +1,24 @@
+#![expect(clippy::absolute_paths, clippy::format_push_string, clippy::too_many_lines)]
 use std::path::PathBuf;
 use std::process::ExitCode;
-
 use clap::{Parser, Subcommand};
 use know_admission::{AdmissionDecision, KnowledgeProposal, Pipeline, RegressionManifest};
 use know_lexicon::{ContextResolver, ResolutionContext, ResolutionResult, Resolver};
 use know_ontology::{ConceptExpr, ConceptExprSource, KnowledgeModule, KnowledgeModuleSource, compile};
 use know_owl::{RustdlReasoner, export_owl_functional};
 use know_reasoner::{BooleanReasoner, Explanation, Proposition, Reasoner, ReasoningOutcome, Verdict};
-
 #[derive(Parser)]
 #[command(name = "know", about = "Know knowledge framework")]
 struct Cli {
     #[command(subcommand)]
     command: Command,
 }
-
 #[derive(Subcommand)]
 enum Command {
     /// Parse and validate a knowledge module file.
     Check { path: PathBuf },
-
     /// Parse, validate, and reserialize a module in canonical form.
     Normalize { path: PathBuf },
-
     /// Evaluate a query against a module.
     ///
     /// Query forms:
@@ -34,15 +30,12 @@ enum Command {
     ///   member <entity-id> <expr>
     ///
     /// An <expr> is a bare concept ID, or a RON concept expression such as
-    /// 'And([Named("geometry::red"), Named("geometry::square")])'.
+    /// 'And([`Named("geometry::red`"), `Named("geometry::square`")])'.
     Reason { module: PathBuf, query: Vec<String> },
-
     /// Classify a concept within a module (direct super/sub/equivalent classes).
     Classify { module: PathBuf, concept: String },
-
     /// Like `reason`, but prints the full explanation artifact.
     Explain { module: PathBuf, query: Vec<String> },
-
     /// Resolve a word to candidate canonical concepts using a lexicon module.
     Resolve {
         lexicon: PathBuf,
@@ -54,7 +47,6 @@ enum Command {
         #[arg(long)]
         domain: Option<String>,
     },
-
     /// Run a knowledge proposal (RON `KnowledgeProposal`) through the
     /// admission pipeline against a base module.
     ///
@@ -68,19 +60,15 @@ enum Command {
         #[arg(long)]
         apply: bool,
     },
-
     /// Export a module to OWL 2 Functional Syntax.
     ExportOwl { module: PathBuf },
-
     /// Import an OWL ontology as a Know source module.
     ImportOwl { ontology: PathBuf },
-
     /// Compare this module's reasoning results against a reference OWL reasoner.
     ///
     /// TODO: implement once OWL export and differential testing are in place.
     DiffReasoner { module: PathBuf },
 }
-
 fn main() -> ExitCode {
     let cli = Cli::parse();
     match run(cli.command) {
@@ -91,7 +79,6 @@ fn main() -> ExitCode {
         }
     }
 }
-
 fn run(command: Command) -> Result<(), String> {
     match command {
         Command::Check { path } => {
@@ -99,7 +86,6 @@ fn run(command: Command) -> Result<(), String> {
             println!("ok");
             Ok(())
         }
-
         Command::Normalize { path } => {
             let source = load_module(&path)?;
             compile_source(source.clone())?;
@@ -269,7 +255,7 @@ fn parse_expr(input: &str) -> Result<ConceptExpr, String> {
 }
 
 /// Syntactic source→IR conversion. Vocabulary checking happens in the
-/// reasoner, which reports unknown names as IllTyped.
+/// reasoner, which reports unknown names as `IllTyped`.
 fn expr_from_source(source: ConceptExprSource) -> ConceptExpr {
     match source {
         ConceptExprSource::Named(name) => ConceptExpr::Named(know_core::ConceptId(name)),
@@ -352,7 +338,7 @@ fn print_explanation(explanation: &Explanation, verbose: bool) {
 }
 
 fn print_ids<'a>(label: &str, ids: impl Iterator<Item = &'a String>) {
-    let list: Vec<&str> = ids.map(|s| s.as_str()).collect();
+    let list: Vec<&str> = ids.map(std::string::String::as_str).collect();
     println!("{label}: {}", if list.is_empty() { "(none)".to_string() } else { list.join(", ") });
 }
 

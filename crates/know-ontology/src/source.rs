@@ -4,12 +4,14 @@
 //! validation happen in `compile`, which produces the typed IR in `ir`.
 
 use know_core::Provenance;
+use ron::{Error as RonError, error::SpannedError, ser::{PrettyConfig, to_string_pretty}};
 use serde::{Deserialize, Serialize};
 
 // ---------------------------------------------------------------------------
 // Concept expressions (source layer uses String for concept/relation names)
 // ---------------------------------------------------------------------------
 
+/// Source-level concept expression.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ConceptExprSource {
     Named(String),
@@ -24,6 +26,7 @@ pub enum ConceptExprSource {
 // Axioms (source layer)
 // ---------------------------------------------------------------------------
 
+/// Source-level axiom.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum AxiomSource {
     SubclassOf { child: ConceptExprSource, parent: ConceptExprSource },
@@ -124,12 +127,22 @@ pub struct KnowledgeModuleSource {
 }
 
 impl KnowledgeModuleSource {
-    pub fn from_ron(input: &str) -> Result<Self, ron::error::SpannedError> {
+    /// Parse a source module from RON.
+    ///
+    /// # Errors
+    ///
+    /// Returns the RON parser error when `input` is malformed.
+    pub fn from_ron(input: &str) -> Result<Self, SpannedError> {
         ron::from_str(input)
     }
 
-    pub fn to_ron(&self) -> Result<String, ron::Error> {
-        let pretty = ron::ser::PrettyConfig::default();
-        ron::ser::to_string_pretty(self, pretty)
+    /// Serialize this source module as pretty-printed RON.
+    ///
+    /// # Errors
+    ///
+    /// Returns the RON serialization error when a value cannot be serialized.
+    pub fn to_ron(&self) -> Result<String, RonError> {
+        let pretty = PrettyConfig::default();
+        to_string_pretty(self, pretty)
     }
 }

@@ -1,3 +1,5 @@
+#![expect(clippy::expect_used, clippy::needless_pass_by_value, clippy::unwrap_used)]
+
 use know_core::codes;
 use know_ontology::{
     AxiomSource, ConceptExprSource as E, ConceptRecordSource, ConceptStatus, KnowledgeModuleSource,

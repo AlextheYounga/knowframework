@@ -15,6 +15,7 @@ use know_ontology::{
     KnowledgeModuleSource, compile,
 };
 
+#[must_use]
 pub fn geometry_source() -> KnowledgeModuleSource {
     KnowledgeModuleSource {
         id: "geometry".to_string(),
@@ -66,6 +67,7 @@ pub fn geometry_source() -> KnowledgeModuleSource {
     }
 }
 
+#[must_use]
 pub fn geometry_module() -> KnowledgeModule {
     compile::compile(geometry_source()).expect("geometry fixture must always compile")
 }
@@ -73,6 +75,7 @@ pub fn geometry_module() -> KnowledgeModule {
 /// Geometry plus one entity asserted to be a square. Consistent; used for
 /// class-membership verdicts (member of Polygon → Entailed, member of
 /// Circle → Contradicted, member of Red → Unknown).
+#[must_use]
 pub fn geometry_with_square_entity() -> KnowledgeModule {
     let mut source = geometry_source();
     source.entities.push(entity("geometry::my_square", "my square"));
@@ -87,6 +90,7 @@ pub fn geometry_with_square_entity() -> KnowledgeModule {
 /// which the disjointness axiom makes impossible. The module compiles
 /// (structurally valid) but is logically inconsistent — required verdict:
 /// every query returns Inconsistent.
+#[must_use]
 pub fn geometry_with_impossible_entity() -> KnowledgeModule {
     let mut source = geometry_source();
     source.entities.push(entity("geometry::weird", "weird thing"));

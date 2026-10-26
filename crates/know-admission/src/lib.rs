@@ -13,6 +13,7 @@
 //! 3. Ontological — grounding-category compatibility. TODO: unimplemented
 //!    until the plan specifies which grounding combinations are compatible;
 //!    the stage runs and passes vacuously so records show it was considered.
+#![expect(clippy::absolute_paths, clippy::cast_possible_wrap, clippy::missing_errors_doc, clippy::needless_pass_by_value, clippy::result_large_err, clippy::too_many_lines)]
 //! 4. Logical — the merged ontology stays consistent, proposed concepts are
 //!    satisfiable, definitions don't silently collapse distinct concepts
 //!    into equivalence.
@@ -26,50 +27,43 @@
 //! TODO: the plan does not yet pin down positive admission criteria such as
 //! "stable across independent generator runs", or arbitration between two
 //! valid but mutually incompatible proposals for the same concept.
-
 mod timestamp;
 pub mod types;
-
 pub use types::*;
-
 use know_core::{ConceptId, Diagnostic, Severity, codes};
 use know_lexicon::LexicalForm;
 use know_ontology::{ConceptExpr, ConceptExprSource, KnowledgeModuleSource, compile};
 use know_owl::RustdlReasoner;
 use know_reasoner::{BooleanReasoner, Proposition, Reasoner, ReasoningOutcome, Verdict};
-
 use self::timestamp::iso8601_now;
-
 // ---------------------------------------------------------------------------
 // Pipeline
 // ---------------------------------------------------------------------------
-
 pub struct Pipeline {
     base: KnowledgeModuleSource,
     regression_checks: Vec<RegressionCheck>,
 }
-
 impl Pipeline {
+    #[must_use]
     pub fn new(base: KnowledgeModuleSource) -> Self {
         Self { base, regression_checks: vec![] }
     }
-
+    #[must_use]
     pub fn with_regression_checks(mut self, checks: Vec<RegressionCheck>) -> Self {
         self.regression_checks = checks;
         self
     }
-
+    #[must_use]
     pub fn with_regression_manifest(mut self, manifest: RegressionManifest) -> Self {
         self.regression_checks = manifest.checks.into_iter().map(regression_check).collect();
         self
     }
-
     /// Return the deterministic source module that would result from applying
     /// `proposal`. This does not imply that the proposal was admitted.
+    #[must_use]
     pub fn merged_source(&self, proposal: &KnowledgeProposal) -> KnowledgeModuleSource {
         merge(&self.base, proposal)
     }
-
     /// Return the merged source only when every required admission gate passed
     /// without warnings. Callers are responsible for durable storage.
     pub fn apply(&self, proposal: KnowledgeProposal) -> Result<KnowledgeModuleSource, AdmissionRecord> {
@@ -80,16 +74,15 @@ impl Pipeline {
             Err(record)
         }
     }
-
     /// Run the proposal through all validation stages and return a record.
     ///
     /// Does not mutate the base module; callers apply accepted proposals
     /// themselves via whatever version-management layer they have.
+    #[must_use]
     pub fn admit(&self, proposal: KnowledgeProposal) -> AdmissionRecord {
         let mut stages: Vec<ValidationResult> = vec![];
         let mut changed_verdicts: Vec<VerdictDiff> = vec![];
         let mut conflict = false;
-
         // --- 1. Structural: does the merged module compile? -----------------
         let merged_source = merge(&self.base, &proposal);
         let compiled = compile::compile(merged_source.clone());
@@ -238,7 +231,7 @@ fn check_lexical(bindings: &[LexicalForm], merged: &KnowledgeModuleSource) -> Ve
     diagnostics
 }
 
-/// Returns (diagnostics, conflicts_with_existing_knowledge).
+/// Returns (diagnostics, `conflicts_with_existing_knowledge`).
 fn check_logical<R: Reasoner>(
     reasoner: &R,
     module: &know_ontology::KnowledgeModule,

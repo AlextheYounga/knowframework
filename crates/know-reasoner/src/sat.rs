@@ -23,17 +23,20 @@ pub enum Formula {
 
 impl Formula {
     // Logical negation constructor; intentionally shadows the name `not`.
-    #[allow(clippy::should_implement_trait)]
+    #[expect(clippy::should_implement_trait)]
+    #[must_use]
     pub fn not(f: Formula) -> Formula {
         Formula::Not(Box::new(f))
     }
 
     /// child → parent, i.e. ¬child ∨ parent.
+    #[must_use]
     pub fn implies(child: Formula, parent: Formula) -> Formula {
         Formula::Or(vec![Formula::not(child), parent])
     }
 
     /// left ↔ right.
+    #[must_use]
     pub fn iff(left: Formula, right: Formula) -> Formula {
         Formula::And(vec![Formula::implies(left.clone(), right.clone()), Formula::implies(right, left)])
     }
@@ -50,10 +53,12 @@ pub struct Lit {
 }
 
 impl Lit {
+    #[must_use]
     pub fn pos(var: Var) -> Self {
         Self { var, positive: true }
     }
 
+    #[must_use]
     pub fn neg(var: Var) -> Self {
         Self { var, positive: false }
     }
@@ -74,6 +79,7 @@ pub struct CnfBuilder {
 impl CnfBuilder {
     /// `first_free_var` must be greater than every variable used in the
     /// formulas that will be added.
+    #[must_use]
     pub fn new(first_free_var: Var) -> Self {
         Self { next_var: first_free_var, clauses: vec![] }
     }
@@ -134,6 +140,7 @@ impl CnfBuilder {
 
     /// Solve the accumulated clauses. Returns a model (indexed by variable)
     /// if satisfiable, or None if unsatisfiable.
+    #[must_use]
     pub fn solve(&self) -> Option<Vec<bool>> {
         let num_vars = self.next_var as usize;
         let mut assignment: Vec<Option<bool>> = vec![None; num_vars];
@@ -221,7 +228,7 @@ fn dpll(clauses: &[Vec<Lit>], assignment: &mut Vec<Option<bool>>) -> bool {
     }
 
     // Find an unassigned variable to branch on.
-    let branch_var = assignment.iter().position(|a| a.is_none());
+    let branch_var = assignment.iter().position(std::option::Option::is_none);
     let Some(v) = branch_var else {
         return true; // fully assigned with no conflict
     };

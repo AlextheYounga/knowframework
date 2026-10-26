@@ -1,10 +1,12 @@
+#![expect(clippy::needless_pass_by_value, clippy::panic)]
+
 //! Geometry acceptance suite — the required verdicts from the architecture
 //! plan, evaluated by the Stage 2 Boolean reasoner.
 //!
-//!   Square SUBCLASS_OF Rectangle        → Entailed
-//!   Square SUBCLASS_OF Polygon          → Entailed
+//!   Square `SUBCLASS_OF` Rectangle        → Entailed
+//!   Square `SUBCLASS_OF` Polygon          → Entailed
 //!   SATISFIABLE (Square AND Circle)     → Contradicted
-//!   (Red AND Square) SUBCLASS_OF Large  → Unknown
+//!   (Red AND Square) `SUBCLASS_OF` Large  → Unknown
 //!   entity asserted Square and Circle   → Inconsistent
 
 use know_ontology::ConceptExpr;

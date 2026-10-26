@@ -1,5 +1,6 @@
 use know_core::{AxiomId, ConceptId, Diagnostic, EntityId, codes};
 use know_ontology::ConceptExpr;
+use std::collections::HashSet;
 
 use crate::{
     Explanation, InferenceRule, InferenceStep, Proposition, UnknownExplanation, Verdict,
@@ -31,7 +32,7 @@ impl BooleanReasoner {
     }
 
     pub(super) fn describe_model(&self, model: &[bool], relevant: &[ConceptId]) -> String {
-        let mut seen = std::collections::HashSet::new();
+        let mut seen = HashSet::new();
         let parts: Vec<String> = relevant
             .iter()
             .filter(|id| seen.insert((*id).clone()))
@@ -85,7 +86,7 @@ impl BooleanReasoner {
         let child_f = self.query_formula(child)?;
         let parent_f = self.query_formula(parent)?;
 
-        let not_parent = Formula::not(parent_f.clone());
+        let not_parent = Formula::not(parent_f);
         match self.refute(&self.tbox_refs(), &[&child_f, &not_parent]) {
             Ok(core) => Ok(Verdict::Entailed(self.explanation(proposition.clone(), core, None))),
             Err(model) => {

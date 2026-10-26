@@ -10,7 +10,7 @@ use horned_owl::ontology::set::SetOntology;
 use know_core::{AxiomId, ConceptId, EntityId, RelationId};
 use know_ontology::{Axiom, ConceptExpr, KnowledgeModule};
 
-use crate::iri::{concept_iri, entity_iri, relation_iri};
+use crate::iri::{OWL_NOTHING, OWL_THING, concept_iri, entity_iri, relation_iri};
 
 /// Parser-validated OWL 2 Functional Syntax and its standards source metadata.
 #[derive(Debug, Clone)]
@@ -246,8 +246,8 @@ fn render_axiom(axiom: &Axiom) -> String {
 pub(crate) fn render_expr(expr: &ConceptExpr) -> String {
     match expr {
         ConceptExpr::Named(id) => format!("<{}>", concept_iri(id)),
-        ConceptExpr::And(parts) => render_boolean("ObjectIntersectionOf", "http://www.w3.org/2002/07/owl#Thing", parts),
-        ConceptExpr::Or(parts) => render_boolean("ObjectUnionOf", "http://www.w3.org/2002/07/owl#Nothing", parts),
+        ConceptExpr::And(parts) => render_boolean("ObjectIntersectionOf", OWL_THING, parts),
+        ConceptExpr::Or(parts) => render_boolean("ObjectUnionOf", OWL_NOTHING, parts),
         ConceptExpr::Not(inner) => format!("ObjectComplementOf({})", render_expr(inner)),
         ConceptExpr::Exists { relation, filler } => {
             format!("ObjectSomeValuesFrom(<{}> {})", relation_iri(relation), render_expr(filler))

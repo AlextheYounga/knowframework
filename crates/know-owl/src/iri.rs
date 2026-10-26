@@ -4,6 +4,8 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 use know_core::{ConceptId, EntityId, RelationId};
 
 const PREFIX: &str = "urn:know:";
+pub(crate) const OWL_NOTHING: &str = "http://www.w3.org/2002/07/owl#Nothing";
+pub(crate) const OWL_THING: &str = "http://www.w3.org/2002/07/owl#Thing";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum IriCodecError {
