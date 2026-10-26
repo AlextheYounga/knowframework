@@ -597,6 +597,7 @@ dependencies = [
  "know-core",
  "know-ontology",
  "know-reasoner",
+ "owl-dl-core",
  "owl-dl-reasoner",
 ]
 

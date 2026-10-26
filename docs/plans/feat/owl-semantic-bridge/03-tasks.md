@@ -2,65 +2,25 @@
 
 ## Implementation
 
-- [ ] Define the strict `urn:know:<kind>:<hex>` codec for concept, relation, and
-  entity IDs, including canonical decoding and typed error reporting.
-- [ ] Introduce an atomic first-slice translation result that records every source
-  axiom and relation domain/range rendering, records domain/range coverage
-  without inventing support IDs, and rejects unsupported or dropped content before
-  rustdl execution.
-- [ ] Render the complete first-slice vocabulary: declarations, all six class
-  expression forms, subclass/equivalent/disjoint class axioms, positive and
-  negative class/object-property assertions, and object-property domain/range;
-  encode negative class assertions as complemented `ClassAssertion` and retain
-  `NegativeObjectPropertyAssertion` for negative relations.
-- [ ] Add typed `RustdlInitError` construction results, returning
-  `Unsupported` for unsupported/dropped translation input and `InternalError` for
-  parser/backend initialization failures; keep `ReasoningOutcome` for queries.
-- [ ] Store canonical source metadata with translated axioms while keeping probe
-  axioms distinguishable and outside source support claims.
-- [ ] Normalize rustdl capability, completeness, resource-limit, parse, execution,
-  and result-decoding statuses to `Unsupported`, `ResourceLimit`, or
-  `InternalError` before verdict construction.
-- [ ] Implement complete inconsistency-first and proposition/negation dual
-  evaluation so `Unknown` is emitted only after both sides complete.
-- [ ] Replace synthetic rustdl explanation steps with conservative notes and only
-  backend-guaranteed mapped supporting axioms.
-- [ ] Keep rustdl classification explicitly unsupported and leave OWL import,
-  diff-reasoner CLI, and full OWL 2 DL constructs untouched.
+- [x] Add strict typed IRI translation and atomic source coverage.
+- [x] Publish standards-only `translate_owl`/`OwlTranslation` metadata and keep rustdl NNF adaptation private and downstream of successful translation.
+- [x] Expose `OwlTranslationError` from standards export, parser-validate its output, and retain `RustdlInitError` only for adapter construction.
+- [x] Normalize empty/singleton Boolean expressions and reject undersized equivalent/disjoint axioms before rendering.
+- [x] Replace declared-entity negative subclass/equivalence checks with temporary-constraint consistency proofs; add matching disjointness proof and complete error propagation.
+- [x] Classify post-initialization probe conversion and role-chain failures as `InternalError`.
+- [x] Update CLI error ownership and README capability description.
 
 ## Validation
 
-- [ ] Add codec cases for round trips, all kind tags, arbitrary UTF-8 IDs,
-  malformed hex, noncanonical casing, invalid UTF-8, and cross-kind rejection.
-- [ ] Extend relational adapter cases to cover each first-slice construct,
-  declaration preservation, domain/range inference, complemented negative class
-  assertions, negative object-property assertions, and atomic rejection of
-  unsupported/dropped axioms.
-- [ ] Verify relation domain/range coverage is recorded while explanations never
-  contain invented support IDs for those unannotated items.
-- [ ] Add constructor tests for typed `RustdlInitError::Unsupported` and
-  `RustdlInitError::InternalError`, distinct from query-time outcomes.
-- [ ] Add status fixtures or backend seams proving complete verdicts,
-  inconsistency, complete dual-evaluation `Unknown`, `ResourceLimit`,
-  `Unsupported`, and `InternalError` remain distinct.
-- [ ] Assert explanation support IDs correspond only to translated source axioms
-  and that unsupported proof steps are absent.
-- [ ] Add the BooleanReasoner/rustdl overlap matrix and make any semantic mismatch
-  fail with the proposition and both outcomes visible.
-- [ ] Run formatting, linting, compilation, focused adapter tests, overlap tests,
-  and the broader repository test suite after implementation; record the results.
+- [x] Add export cardinality/parser-validity cases and backend execution coverage for empty, singleton, and complemented Boolean expressions.
+- [x] Add explicit and anonymous overlap contradiction cases plus open subclass/equivalence/disjoint and unknown membership cases.
+- [x] Add inconsistent ontology and generated-probe status boundary cases.
+- [x] Run formatting, focused package tests, affected CLI checks, workspace tests, diff check, and Clippy attempts with recorded results.
 
 ## Completion
 
-- [ ] Update `README.md` or `docs/PROJECT.md` if it currently states an OWL
-  capability contradicted by the delivered slice.
-- [ ] Review the final diff for canonical-IR ownership, no silent axiom drops,
-  honest explanations, and the stated exclusions.
-- [ ] Mark this task list with implementation validation results and any deliberate
-  deviations only after the approved implementation is complete.
+- [x] Review the final diff for public API separation, complete OWL proof semantics, private adapter artifacts, and exclusions.
 
 ## Completion notes
 
-Planning stage: no implementation, test execution, or validation results have
-been recorded. The three numbered documents are the authoritative pre-approval
-record; implementation requires human review and approval.
+The earlier implementation established the slice structure but its declared-individual negative proof, exporter lifecycle error, n-ary rendering policy, and coupled standards/backend translation were superseded by clarification 04 and its authoritative updates. `cargo test -p know-owl` passed (8 unit, 4 representative overlap, 9 relational), including direct lifecycle mapping and rustdl Boolean identity execution. `cargo fmt -p know-owl -- --check`, `cargo check -p know-cli`, `cargo test -p know-cli`, `cargo test --workspace --exclude cleancode`, and `git diff --check` passed. `cargo fmt --all -- --check` remains blocked by pre-existing formatting in `know-ontology` and `know-reasoner`; those files were not changed. `cargo clippy -p know-owl --all-targets --all-features --no-deps` now passes with no warnings. Workspace-wide Clippy remains subject to pre-existing blockers outside `know-owl`, including denied lints in `tests/cleancode` and `know-ontology`.
